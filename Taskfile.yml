@@ -1,0 +1,40 @@
+version: '3'
+
+dotenv: ['.env']
+
+tasks:
+  compose:
+    cmds:
+      - docker compose up -d
+      - sleep 3
+    silent: true
+
+  migrate:
+    deps: [compose]
+    env:
+      DB_HOST: "{{.DB_HOST}}"
+      DB_PORT: "{{.DB_PORT}}"
+      DB_USER: "{{.DB_USER}}"
+      DB_PASSWORD: "{{.DB_PASSWORD}}"
+      DB_NAME: "{{.DB_NAME}}"
+      MIGRATIONS_PATH: "{{.MIGRATIONS_PATH}}"
+    cmds:
+      - go run ./cmd/migrator/main.go
+
+  build:
+    cmd: go build -o bin/main cmd/main/main.go
+    silent: true
+
+  run:
+    env:
+      CONFIG_PATH: .env
+    deps: [compose, build]
+    cmd: ./bin/main
+    silent: true
+
+  cov:
+    cmds:
+      - go test -coverprofile=coverage.out ./...
+      - go tool cover -func=coverage.out
+      - go tool cover -html=coverage.out -o coverage.html
+      - rm coverage.out
