@@ -7,91 +7,79 @@ import (
 	"time"
 
 	"github.com/AlexMickh/shop-backend/internal/models"
-	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/pashagolub/pgxmock/v4"
+	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSaveToken(t *testing.T) {
-	type fields struct {
-		db Postgres
-	}
 	type args struct {
 		ctx   context.Context
 		token models.Token
 	}
 
-	mock, err := pgxmock.NewPool()
-	require.NoError(t, err)
-	defer mock.Close()
-
-	userID, err := uuid.NewV7()
-	require.NoError(t, err)
-
-	unexpectedErr := errors.New("some error")
+	someError := errors.New("some error")
 
 	tests := []struct {
-		name        string
-		fields      fields
-		args        args
-		wantErr     error
-		wantMockErr error
+		name      string
+		args      args
+		wantDbErr error
+		wantErr   error
 	}{
 		{
 			name: "good case",
-			fields: fields{
-				db: mock,
-			},
 			args: args{
 				ctx: context.Background(),
 				token: models.Token{
 					Token:     "some token",
-					UserID:    userID,
+					UserID:    1,
 					Type:      models.TokenTypeValidateEmail,
 					ExpiresAt: time.Now().Add(5 * time.Minute),
 				},
 			},
-			wantErr:     nil,
-			wantMockErr: nil,
+			wantDbErr: nil,
+			wantErr:   nil,
 		},
 		{
 			name: "unexpected error case",
-			fields: fields{
-				db: mock,
-			},
 			args: args{
 				ctx: context.Background(),
 				token: models.Token{
 					Token:     "some token",
-					UserID:    userID,
+					UserID:    1,
 					Type:      models.TokenTypeValidateEmail,
 					ExpiresAt: time.Now().Add(5 * time.Minute),
 				},
 			},
-			wantErr:     unexpectedErr,
-			wantMockErr: unexpectedErr,
+			wantDbErr: someError,
+			wantErr:   someError,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			if tt.wantMockErr == nil {
+			db, mock, err := sqlmock.New()
+			require.NoError(t, err)
+			defer db.Close()
+
+			if tt.wantDbErr == nil {
 				mock.ExpectExec("INSERT INTO tokens").
 					WithArgs(tt.args.token.Token, tt.args.token.UserID, string(tt.args.token.Type), tt.args.token.ExpiresAt).
-					WillReturnResult(pgconn.NewCommandTag("good"))
+					WillReturnResult(sqlmock.NewResult(1, 1))
 			} else {
 				mock.ExpectExec("INSERT INTO tokens").
 					WithArgs(tt.args.token.Token, tt.args.token.UserID, string(tt.args.token.Type), tt.args.token.ExpiresAt).
-					WillReturnError(tt.wantMockErr)
+					WillReturnError(tt.wantDbErr)
 			}
 
 			tr := &TokenRepository{
-				db: tt.fields.db,
+				db: db,
 			}
-			err := tr.SaveToken(tt.args.ctx, tt.args.token)
+			err = tr.SaveToken(tt.args.ctx, tt.args.token)
 			require.ErrorIs(t, err, tt.wantErr)
+
+			err = mock.ExpectationsWereMet()
+			require.NoError(t, err)
 		})
 	}
 }

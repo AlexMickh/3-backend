@@ -8,7 +8,6 @@ import (
 	"context"
 
 	"github.com/AlexMickh/shop-backend/internal/models"
-	"github.com/google/uuid"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -40,24 +39,22 @@ func (_m *MockUserService) EXPECT() *MockUserService_Expecter {
 }
 
 // CreateUser provides a mock function for the type MockUserService
-func (_mock *MockUserService) CreateUser(ctx context.Context, email string, phone string, password string) (uuid.UUID, error) {
+func (_mock *MockUserService) CreateUser(ctx context.Context, email string, phone string, password string) (int64, error) {
 	ret := _mock.Called(ctx, email, phone, password)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateUser")
 	}
 
-	var r0 uuid.UUID
+	var r0 int64
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string) (uuid.UUID, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string) (int64, error)); ok {
 		return returnFunc(ctx, email, phone, password)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string) uuid.UUID); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string) int64); ok {
 		r0 = returnFunc(ctx, email, phone, password)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(uuid.UUID)
-		}
+		r0 = ret.Get(0).(int64)
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
 		r1 = returnFunc(ctx, email, phone, password)
@@ -109,12 +106,12 @@ func (_c *MockUserService_CreateUser_Call) Run(run func(ctx context.Context, ema
 	return _c
 }
 
-func (_c *MockUserService_CreateUser_Call) Return(uUID uuid.UUID, err error) *MockUserService_CreateUser_Call {
-	_c.Call.Return(uUID, err)
+func (_c *MockUserService_CreateUser_Call) Return(n int64, err error) *MockUserService_CreateUser_Call {
+	_c.Call.Return(n, err)
 	return _c
 }
 
-func (_c *MockUserService_CreateUser_Call) RunAndReturn(run func(ctx context.Context, email string, phone string, password string) (uuid.UUID, error)) *MockUserService_CreateUser_Call {
+func (_c *MockUserService_CreateUser_Call) RunAndReturn(run func(ctx context.Context, email string, phone string, password string) (int64, error)) *MockUserService_CreateUser_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -213,7 +210,7 @@ func (_m *MockTokenService) EXPECT() *MockTokenService_Expecter {
 }
 
 // CreateToken provides a mock function for the type MockTokenService
-func (_mock *MockTokenService) CreateToken(ctx context.Context, userID uuid.UUID, tokenType models.TokenType) (models.Token, error) {
+func (_mock *MockTokenService) CreateToken(ctx context.Context, userID int64, tokenType models.TokenType) (models.Token, error) {
 	ret := _mock.Called(ctx, userID, tokenType)
 
 	if len(ret) == 0 {
@@ -222,15 +219,15 @@ func (_mock *MockTokenService) CreateToken(ctx context.Context, userID uuid.UUID
 
 	var r0 models.Token
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, models.TokenType) (models.Token, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int64, models.TokenType) (models.Token, error)); ok {
 		return returnFunc(ctx, userID, tokenType)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uuid.UUID, models.TokenType) models.Token); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int64, models.TokenType) models.Token); ok {
 		r0 = returnFunc(ctx, userID, tokenType)
 	} else {
 		r0 = ret.Get(0).(models.Token)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, uuid.UUID, models.TokenType) error); ok {
+	if returnFunc, ok := ret.Get(1).(func(context.Context, int64, models.TokenType) error); ok {
 		r1 = returnFunc(ctx, userID, tokenType)
 	} else {
 		r1 = ret.Error(1)
@@ -245,21 +242,21 @@ type MockTokenService_CreateToken_Call struct {
 
 // CreateToken is a helper method to define mock.On call
 //   - ctx context.Context
-//   - userID uuid.UUID
+//   - userID int64
 //   - tokenType models.TokenType
 func (_e *MockTokenService_Expecter) CreateToken(ctx interface{}, userID interface{}, tokenType interface{}) *MockTokenService_CreateToken_Call {
 	return &MockTokenService_CreateToken_Call{Call: _e.mock.On("CreateToken", ctx, userID, tokenType)}
 }
 
-func (_c *MockTokenService_CreateToken_Call) Run(run func(ctx context.Context, userID uuid.UUID, tokenType models.TokenType)) *MockTokenService_CreateToken_Call {
+func (_c *MockTokenService_CreateToken_Call) Run(run func(ctx context.Context, userID int64, tokenType models.TokenType)) *MockTokenService_CreateToken_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 uuid.UUID
+		var arg1 int64
 		if args[1] != nil {
-			arg1 = args[1].(uuid.UUID)
+			arg1 = args[1].(int64)
 		}
 		var arg2 models.TokenType
 		if args[2] != nil {
@@ -279,7 +276,7 @@ func (_c *MockTokenService_CreateToken_Call) Return(token models.Token, err erro
 	return _c
 }
 
-func (_c *MockTokenService_CreateToken_Call) RunAndReturn(run func(ctx context.Context, userID uuid.UUID, tokenType models.TokenType) (models.Token, error)) *MockTokenService_CreateToken_Call {
+func (_c *MockTokenService_CreateToken_Call) RunAndReturn(run func(ctx context.Context, userID int64, tokenType models.TokenType) (models.Token, error)) *MockTokenService_CreateToken_Call {
 	_c.Call.Return(run)
 	return _c
 }

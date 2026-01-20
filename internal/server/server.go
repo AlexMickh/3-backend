@@ -21,7 +21,7 @@ type Server struct {
 }
 
 type AuthService interface {
-	Register(ctx context.Context, req dtos.RegisterDto) (string, error)
+	Register(ctx context.Context, req dtos.RegisterDto) (int64, error)
 	Login(ctx context.Context, req dtos.LoginRequest) (string, string, error)
 }
 

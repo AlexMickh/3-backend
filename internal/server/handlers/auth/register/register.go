@@ -15,7 +15,7 @@ import (
 )
 
 type Registerer interface {
-	Register(ctx context.Context, req dtos.RegisterDto) (string, error)
+	Register(ctx context.Context, req dtos.RegisterDto) (int64, error)
 }
 
 func New(validator *validator.Validate, registerer Registerer) response.HandlerFunc {
@@ -49,7 +49,9 @@ func New(validator *validator.Validate, registerer Registerer) response.HandlerF
 		}
 
 		render.Status(r, http.StatusCreated)
-		render.JSON(w, r, dtos.ToRegisterResponse(userID))
+		render.JSON(w, r, dtos.RegisterResponse{
+			ID: userID,
+		})
 
 		return nil
 	}

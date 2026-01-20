@@ -1,14 +1,10 @@
-CREATE TYPE user_role AS ENUM(
-    'user',
-    'admin'
-); 
-
 CREATE TABLE IF NOT EXISTS users(
-    id UUID PRIMARY KEY DEFAULT uuidv7(),
+    id INTEGER PRIMARY KEY,
     email TEXT UNIQUE,
-    phone VARCHAR(12) UNIQUE,
+    phone TEXT CHECK(length(phone) <= 12),
     password TEXT,
-    role user_role DEFAULT 'user',
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ
+    role TEXT DEFAULT 'user' CHECK(role IN ('user', 'admin')),
+    is_email_verified INTEGER DEFAULT 0 CHECK(is_email_verified IN (0, 1)),
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT
 );

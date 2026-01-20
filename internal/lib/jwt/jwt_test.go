@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/AlexMickh/shop-backend/internal/models"
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,12 +15,11 @@ func TestJwtManager_NewJwt(t *testing.T) {
 		jwtTtl time.Duration
 	}
 	type args struct {
-		userID uuid.UUID
+		userID int64
 		role   models.UserRole
 	}
 
-	id, err := uuid.NewV7()
-	require.NoError(t, err)
+	var id int64 = 1
 
 	tests := []struct {
 		name    string

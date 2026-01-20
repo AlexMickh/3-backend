@@ -8,7 +8,6 @@ import (
 	"github.com/AlexMickh/shop-backend/internal/dtos"
 	"github.com/AlexMickh/shop-backend/internal/errs"
 	"github.com/AlexMickh/shop-backend/internal/models"
-	"github.com/google/uuid"
 	mock "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
@@ -20,16 +19,16 @@ func TestRegister(t *testing.T) {
 		req dtos.RegisterDto
 	}
 
-	id, _ := uuid.NewV7()
+	var id int64 = 1
 	tokenErr := errors.New("token error")
 
 	tests := []struct {
 		name                string
 		args                args
-		want                string
+		want                int64
 		wantErr             error
 		wantUserMockErr     error
-		wantUserMockReturn  uuid.UUID
+		wantUserMockReturn  int64
 		wantTokenMockErr    error
 		wantTokenMockReturn models.Token
 	}{
@@ -43,7 +42,7 @@ func TestRegister(t *testing.T) {
 					Password: "12345",
 				},
 			},
-			want:                id.String(),
+			want:                id,
 			wantErr:             nil,
 			wantUserMockErr:     nil,
 			wantUserMockReturn:  id,
@@ -60,7 +59,7 @@ func TestRegister(t *testing.T) {
 					Password: "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
 				},
 			},
-			want:                "",
+			want:                0,
 			wantErr:             bcrypt.ErrPasswordTooLong,
 			wantUserMockErr:     nil,
 			wantUserMockReturn:  id,
@@ -77,10 +76,10 @@ func TestRegister(t *testing.T) {
 					Password: "1",
 				},
 			},
-			want:                "",
+			want:                0,
 			wantErr:             errs.ErrUserAlreadyExists,
 			wantUserMockErr:     errs.ErrUserAlreadyExists,
-			wantUserMockReturn:  uuid.UUID{},
+			wantUserMockReturn:  0,
 			wantTokenMockErr:    nil,
 			wantTokenMockReturn: models.Token{},
 		},
@@ -94,7 +93,7 @@ func TestRegister(t *testing.T) {
 					Password: "12345",
 				},
 			},
-			want:                "",
+			want:                0,
 			wantErr:             tokenErr,
 			wantUserMockErr:     nil,
 			wantUserMockReturn:  id,
@@ -118,7 +117,7 @@ func TestRegister(t *testing.T) {
 			tokenService := NewMockTokenService(t)
 			tokenService.EXPECT().CreateToken(
 				mock.AnythingOfType("context.backgroundCtx"),
-				mock.AnythingOfType("uuid.UUID"),
+				mock.AnythingOfType("int64"),
 				mock.AnythingOfType("models.TokenType"),
 			).Return(tt.wantTokenMockReturn, tt.wantTokenMockErr).Maybe()
 

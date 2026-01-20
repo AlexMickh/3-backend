@@ -7,7 +7,6 @@ import (
 
 	"github.com/AlexMickh/shop-backend/internal/models"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 )
 
 type JwtManager struct {
@@ -22,13 +21,13 @@ func New(secret string, jwtTtl time.Duration) *JwtManager {
 	}
 }
 
-func (j *JwtManager) NewJwt(userID uuid.UUID, role models.UserRole) (string, error) {
+func (j *JwtManager) NewJwt(userID int64, role models.UserRole) (string, error) {
 	const op = "pkg.jwt.NewJwt"
 
 	token := jwt.New(jwt.SigningMethodHS256)
 
 	claims := token.Claims.(jwt.MapClaims)
-	claims["sub"] = userID.String()
+	claims["sub"] = userID
 	claims["exp"] = time.Now().Add(j.jwtTtl).Unix()
 	claims["role"] = string(role)
 

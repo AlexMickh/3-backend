@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/AlexMickh/shop-backend/internal/models"
-	"github.com/google/uuid"
 )
 
 type Repository interface {
@@ -27,7 +26,7 @@ func New(repository Repository, verifyEmailTokenTtl time.Duration) *TokenService
 	}
 }
 
-func (t *TokenService) CreateToken(ctx context.Context, userID uuid.UUID, tokenType models.TokenType) (models.Token, error) {
+func (t *TokenService) CreateToken(ctx context.Context, userID int64, tokenType models.TokenType) (models.Token, error) {
 	const op = "services.token.CreateVerifyEmailToken"
 
 	var token models.Token

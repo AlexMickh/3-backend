@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/AlexMickh/shop-backend/internal/models"
-	"github.com/google/uuid"
 )
 
 type SessionRepository interface {
@@ -13,7 +12,7 @@ type SessionRepository interface {
 }
 
 type JwtManager interface {
-	NewJwt(userID uuid.UUID, role models.UserRole) (string, error)
+	NewJwt(userID int64, role models.UserRole) (string, error)
 	NewRefresh() (string, error)
 }
 
@@ -31,7 +30,7 @@ func New(repository SessionRepository, jwtManager JwtManager, sessionTtl time.Du
 	}
 }
 
-func (s *SessionService) CreateSession(userID uuid.UUID, role models.UserRole) (string, string, error) {
+func (s *SessionService) CreateSession(userID int64, role models.UserRole) (string, string, error) {
 	const op = "services.session.CreateSession"
 
 	accessToken, err := s.jwtManager.NewJwt(userID, role)

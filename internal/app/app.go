@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"database/sql"
 	"log/slog"
 	"os"
 
@@ -9,22 +10,21 @@ import (
 	"github.com/AlexMickh/shop-backend/internal/lib/jwt"
 	"github.com/AlexMickh/shop-backend/internal/models"
 	session_repository "github.com/AlexMickh/shop-backend/internal/repository/inmemory/session"
-	token_repository "github.com/AlexMickh/shop-backend/internal/repository/postgres/token"
-	user_repository "github.com/AlexMickh/shop-backend/internal/repository/postgres/user"
+	token_repository "github.com/AlexMickh/shop-backend/internal/repository/sqlite/token"
+	user_repository "github.com/AlexMickh/shop-backend/internal/repository/sqlite/user"
 	"github.com/AlexMickh/shop-backend/internal/server"
 	auth_service "github.com/AlexMickh/shop-backend/internal/services/auth"
 	session_service "github.com/AlexMickh/shop-backend/internal/services/session"
 	token_service "github.com/AlexMickh/shop-backend/internal/services/token"
 	user_service "github.com/AlexMickh/shop-backend/internal/services/user"
 	"github.com/AlexMickh/shop-backend/pkg/cash"
-	"github.com/AlexMickh/shop-backend/pkg/clients/postgresql"
+	sqlite_client "github.com/AlexMickh/shop-backend/pkg/clients/sqlite"
 	"github.com/AlexMickh/shop-backend/pkg/email"
 	"github.com/AlexMickh/shop-backend/pkg/logger"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type App struct {
-	db     *pgxpool.Pool
+	db     *sql.DB
 	server *server.Server
 }
 
@@ -33,19 +33,24 @@ func New(ctx context.Context, cfg *config.Config) *App {
 
 	log := logger.FromCtx(ctx).With(slog.String("op", op))
 
-	log.Info("initing postgres")
-	db, err := postgresql.New(
-		ctx,
-		cfg.DB.User,
-		cfg.DB.Password,
-		cfg.DB.Host,
-		cfg.DB.Port,
-		cfg.DB.Name,
-		cfg.DB.MinPools,
-		cfg.DB.MaxPools,
-	)
+	log.Info("initing sqlite")
+	// db, err := postgresql.New(
+	// 	ctx,
+	// 	cfg.DB.User,
+	// 	cfg.DB.Password,
+	// 	cfg.DB.Host,
+	// 	cfg.DB.Port,
+	// 	cfg.DB.Name,
+	// 	cfg.DB.MinPools,
+	// 	cfg.DB.MaxPools,
+	// )
+	// if err != nil {
+	// 	log.Error("failed to init postgres", logger.Err(err))
+	// 	os.Exit(1)
+	// }
+	db, err := sqlite_client.New(ctx, cfg.DB.File)
 	if err != nil {
-		log.Error("failed to init postgres", logger.Err(err))
+		log.Error("failed to init sqlite", logger.Err(err))
 		os.Exit(1)
 	}
 

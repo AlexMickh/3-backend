@@ -6,11 +6,10 @@ import (
 
 	"github.com/AlexMickh/shop-backend/internal/errs"
 	"github.com/AlexMickh/shop-backend/internal/models"
-	"github.com/google/uuid"
 )
 
 type UserRepository interface {
-	SaveUser(ctx context.Context, email, phone, password string) (uuid.UUID, error)
+	SaveUser(ctx context.Context, email, phone, password string) (int64, error)
 	UserByEmail(ctx context.Context, email string) (models.User, error)
 }
 
@@ -24,12 +23,12 @@ func New(userRepository UserRepository) *UserService {
 	}
 }
 
-func (u *UserService) CreateUser(ctx context.Context, email, phone, password string) (uuid.UUID, error) {
+func (u *UserService) CreateUser(ctx context.Context, email, phone, password string) (int64, error) {
 	const op = "services.user.CreateUser"
 
 	userID, err := u.userRepository.SaveUser(ctx, email, phone, password)
 	if err != nil {
-		return uuid.UUID{}, fmt.Errorf("%s: %w", op, err)
+		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return userID, nil

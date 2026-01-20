@@ -2,13 +2,11 @@ package models
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type Session struct {
 	Token          string
-	UserID         uuid.UUID
+	UserID         int64
 	ExpiresAtField time.Time
 }
 
