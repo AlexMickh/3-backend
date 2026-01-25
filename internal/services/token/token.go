@@ -33,7 +33,7 @@ func (t *TokenService) CreateToken(ctx context.Context, userID int64, tokenType 
 	var err error
 	switch tokenType {
 	case models.TokenTypeValidateEmail:
-		token.Token, err = generateRandomString(15)
+		token.Token, err = generateRandomString(32)
 		if err != nil {
 			return models.Token{}, fmt.Errorf("%s: %w", op, err)
 		}

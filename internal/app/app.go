@@ -34,20 +34,6 @@ func New(ctx context.Context, cfg *config.Config) *App {
 	log := logger.FromCtx(ctx).With(slog.String("op", op))
 
 	log.Info("initing sqlite")
-	// db, err := postgresql.New(
-	// 	ctx,
-	// 	cfg.DB.User,
-	// 	cfg.DB.Password,
-	// 	cfg.DB.Host,
-	// 	cfg.DB.Port,
-	// 	cfg.DB.Name,
-	// 	cfg.DB.MinPools,
-	// 	cfg.DB.MaxPools,
-	// )
-	// if err != nil {
-	// 	log.Error("failed to init postgres", logger.Err(err))
-	// 	os.Exit(1)
-	// }
 	db, err := sqlite_client.New(ctx, cfg.DB.File)
 	if err != nil {
 		log.Error("failed to init sqlite", logger.Err(err))
@@ -81,7 +67,7 @@ func New(ctx context.Context, cfg *config.Config) *App {
 	authService := auth_service.New(userService, tokenService, emailQueue, sessionService)
 
 	log.Info("init server")
-	server, err := server.New(ctx, cfg.Server, authService)
+	server, err := server.New(ctx, cfg.Server, authService, userService, sessionService)
 	if err != nil {
 		log.Error("failed to init server", logger.Err(err))
 		os.Exit(1)

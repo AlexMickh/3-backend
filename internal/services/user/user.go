@@ -11,6 +11,7 @@ import (
 type UserRepository interface {
 	SaveUser(ctx context.Context, email, phone, password string) (int64, error)
 	UserByEmail(ctx context.Context, email string) (models.User, error)
+	VerifyEmail(ctx context.Context, token string) error
 }
 
 type UserService struct {
@@ -47,4 +48,15 @@ func (u *UserService) UserByEmail(ctx context.Context, email string) (models.Use
 	}
 
 	return user, nil
+}
+
+func (u *UserService) VerifyEmail(ctx context.Context, token string) error {
+	const op = "services.user.VerifyEmail"
+
+	err := u.userRepository.VerifyEmail(ctx, token)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
 }

@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"time"
@@ -22,7 +23,7 @@ func New(secret string, jwtTtl time.Duration) *JwtManager {
 }
 
 func (j *JwtManager) NewJwt(userID int64, role models.UserRole) (string, error) {
-	const op = "pkg.jwt.NewJwt"
+	const op = "lib.jwt.NewJwt"
 
 	token := jwt.New(jwt.SigningMethodHS256)
 
@@ -40,7 +41,7 @@ func (j *JwtManager) NewJwt(userID int64, role models.UserRole) (string, error) 
 }
 
 func (j *JwtManager) NewRefresh() (string, error) {
-	const op = "pkg.jwt.NewRefresh"
+	const op = "lib.jwt.NewRefresh"
 
 	b := make([]byte, 32)
 
@@ -52,4 +53,36 @@ func (j *JwtManager) NewRefresh() (string, error) {
 	}
 
 	return fmt.Sprintf("%x", b), nil
+}
+
+func (j *JwtManager) Validate(token string) (int64, error) {
+	const op = "lib.jwt.Validate"
+
+	claims := jwt.MapClaims{}
+	_, err := jwt.ParseWithClaims(token, &claims, func(t *jwt.Token) (any, error) {
+		if t.Method == jwt.SigningMethodHS256 {
+			return []byte(j.secret), nil
+		}
+
+		return struct{}{}, errors.New("invalid token")
+	})
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	exp, err := claims.GetExpirationTime()
+	if err != nil {
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	if exp.Compare(time.Now()) == 1 {
+		return 0, fmt.Errorf("%s: %w", op, err)
+	}
+
+	id, ok := claims["sub"].(int64)
+	if !ok {
+		return 0, fmt.Errorf("%s: failed to get id", op)
+	}
+
+	return id, nil
 }

@@ -3,3 +3,5 @@
 .env
 coverage.html
 3_dev.session.sql
+*.db
+*.sql

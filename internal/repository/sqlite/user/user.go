@@ -44,7 +44,7 @@ func (u *UserRepository) SaveUser(ctx context.Context, email, phone, password st
 }
 
 func (u *UserRepository) UserByEmail(ctx context.Context, email string) (models.User, error) {
-	const op = "repository.postgres.user.UserByEmail"
+	const op = "repository.sqlite.user.UserByEmail"
 
 	query := "SELECT id, phone, password, role, is_email_verified FROM users WHERE email = ?"
 	var user models.User
@@ -66,4 +66,27 @@ func (u *UserRepository) UserByEmail(ctx context.Context, email string) (models.
 	user.Email = email
 
 	return user, nil
+}
+
+func (u *UserRepository) VerifyEmail(ctx context.Context, token string) error {
+	const op = "repository.sqlite.user.VerifyEmail"
+
+	query := `UPDATE users SET is_email_verified = 1, updated_at = DATETIME('now') WHERE id = (
+    		      SELECT user_id FROM tokens WHERE token = ? AND expires_at > DATETIME('now')
+			  )`
+	result, err := u.db.ExecContext(ctx, query, token)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	n, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if n == 0 {
+		return fmt.Errorf("%s: %w", op, errs.ErrUserNotFound)
+	}
+
+	return nil
 }

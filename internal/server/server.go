@@ -8,7 +8,9 @@ import (
 	"github.com/AlexMickh/shop-backend/internal/config"
 	"github.com/AlexMickh/shop-backend/internal/dtos"
 	"github.com/AlexMickh/shop-backend/internal/server/handlers/auth/login"
+	"github.com/AlexMickh/shop-backend/internal/server/handlers/auth/refresh"
 	"github.com/AlexMickh/shop-backend/internal/server/handlers/auth/register"
+	"github.com/AlexMickh/shop-backend/internal/server/handlers/user/verify"
 	"github.com/AlexMickh/shop-backend/pkg/logger"
 	"github.com/AlexMickh/shop-backend/pkg/response"
 	"github.com/go-chi/chi/v5"
@@ -25,10 +27,21 @@ type AuthService interface {
 	Login(ctx context.Context, req dtos.LoginRequest) (string, string, error)
 }
 
+type UserService interface {
+	VerifyEmail(ctx context.Context, token string) error
+}
+
+type SessionService interface {
+	Refresh(req dtos.RefreshRequest) (string, string, error)
+	ValidateJwt(token string) (int64, error)
+}
+
 func New(
 	ctx context.Context,
 	cfg config.ServerConfig,
 	authService AuthService,
+	userService UserService,
+	sessionService SessionService,
 ) (*Server, error) {
 	const op = "server.New"
 
@@ -49,6 +62,11 @@ func New(
 	r.Route("/auth", func(r chi.Router) {
 		r.Post("/register", response.ErrorWrapper(register.New(validator, authService)))
 		r.Post("/login", response.ErrorWrapper(login.New(validator, authService)))
+		r.Put("/refresh", response.ErrorWrapper(refresh.New(validator, sessionService)))
+	})
+
+	r.Route("/user", func(r chi.Router) {
+		r.Get("/verify/{token}", response.ErrorWrapper(verify.New(userService)))
 	})
 
 	return &Server{

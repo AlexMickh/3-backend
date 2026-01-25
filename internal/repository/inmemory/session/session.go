@@ -1,6 +1,9 @@
 package session_repository
 
 import (
+	"fmt"
+
+	"github.com/AlexMickh/shop-backend/internal/errs"
 	"github.com/AlexMickh/shop-backend/internal/models"
 	"github.com/AlexMickh/shop-backend/pkg/cash"
 )
@@ -22,4 +25,15 @@ func New(cash Cash[string, models.Session]) *SessionRepository {
 
 func (s *SessionRepository) SaveSession(session models.Session) {
 	s.cash.Put(session.Token, session)
+}
+
+func (s *SessionRepository) SessionByToken(token string) (models.Session, error) {
+	const op = "repository.inmemory.SessionByToken"
+
+	session, err := s.cash.GetWithDelete(token)
+	if err != nil {
+		return models.Session{}, fmt.Errorf("%s: %w", op, errs.ErrSessionNotFound)
+	}
+
+	return session, nil
 }
