@@ -331,11 +331,6 @@ const docTemplate = `{
         },
         "/categories": {
             "get": {
-                "security": [
-                    {
-                        "AdminAuth": []
-                    }
-                ],
                 "description": "get all categories",
                 "consumes": [
                     "application/json"

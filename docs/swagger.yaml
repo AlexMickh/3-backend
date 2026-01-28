@@ -267,8 +267,6 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - AdminAuth: []
       summary: get all categories
       tags:
       - categories

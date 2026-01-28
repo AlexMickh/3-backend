@@ -26,7 +26,6 @@ type CategoryProvider interface {
 //	@Produce		json
 //	@Success		200	{object}	dtos.GetCategoriesResponse
 //	@Failure		500	{object}	response.ErrorResponse
-//	@Security		AdminAuth
 //	@Router			/categories [get]
 func New(validator *validator.Validate, categoryProvider CategoryProvider) response.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
