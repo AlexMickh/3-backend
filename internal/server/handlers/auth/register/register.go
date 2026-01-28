@@ -18,6 +18,20 @@ type Registerer interface {
 	Register(ctx context.Context, req dtos.RegisterDto) (int64, error)
 }
 
+// New godoc
+//
+//	@Summary		register user
+//	@Description	register user
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			email		body		string	true	"User email"	Format(email)
+//	@Param			password	body		string	true	"User password"
+//	@Success		201			{object}	dtos.RegisterResponse
+//	@Failure		400			{object}	response.ErrorResponse
+//	@Failure		409			{object}	response.ErrorResponse
+//	@Failure		500			{object}	response.ErrorResponse
+//	@Router			/auth/register [post]
 func New(validator *validator.Validate, registerer Registerer) response.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		const op = "handlers.auth.register.New"

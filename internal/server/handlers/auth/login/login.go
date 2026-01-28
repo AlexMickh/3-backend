@@ -18,6 +18,21 @@ type Loginer interface {
 	Login(ctx context.Context, req dtos.LoginRequest) (string, string, error)
 }
 
+// New godoc
+//
+//	@Summary		login user
+//	@Description	login user
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			email		body		string	true	"User email"	Format(email)
+//	@Param			password	body		string	true	"User password"
+//	@Success		201			{object}	dtos.LoginResponse
+//	@Failure		400			{object}	response.ErrorResponse
+//	@Failure		404			{object}	response.ErrorResponse
+//	@Failure		424			{object}	response.ErrorResponse
+//	@Failure		500			{object}	response.ErrorResponse
+//	@Router			/auth/login [post]
 func New(validator *validator.Validate, loginer Loginer) response.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		const op = "handlers.auth.login.New"
@@ -52,6 +67,7 @@ func New(validator *validator.Validate, loginer Loginer) response.HandlerFunc {
 			return response.Error("failed to login user", http.StatusInternalServerError)
 		}
 
+		render.Status(r, http.StatusCreated)
 		render.JSON(w, r, dtos.LoginResponse{
 			AccessToken:  accessToken, // I know that this is bad, but I don't care about it. Maybe I will change it later
 			RefreshToken: refreshToken,

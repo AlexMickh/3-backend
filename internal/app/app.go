@@ -10,10 +10,12 @@ import (
 	"github.com/AlexMickh/shop-backend/internal/lib/jwt"
 	"github.com/AlexMickh/shop-backend/internal/models"
 	session_repository "github.com/AlexMickh/shop-backend/internal/repository/inmemory/session"
+	category_repository "github.com/AlexMickh/shop-backend/internal/repository/sqlite/category"
 	token_repository "github.com/AlexMickh/shop-backend/internal/repository/sqlite/token"
 	user_repository "github.com/AlexMickh/shop-backend/internal/repository/sqlite/user"
 	"github.com/AlexMickh/shop-backend/internal/server"
 	auth_service "github.com/AlexMickh/shop-backend/internal/services/auth"
+	category_service "github.com/AlexMickh/shop-backend/internal/services/category"
 	session_service "github.com/AlexMickh/shop-backend/internal/services/session"
 	token_service "github.com/AlexMickh/shop-backend/internal/services/token"
 	user_service "github.com/AlexMickh/shop-backend/internal/services/user"
@@ -42,6 +44,7 @@ func New(ctx context.Context, cfg *config.Config) *App {
 
 	userRepository := user_repository.New(db)
 	tokenRepository := token_repository.New(db)
+	categoryRepository := category_repository.New(db)
 
 	log.Info("initing cash")
 	sessionCash := cash.New[string, models.Session](ctx, cfg.Jwt.RefreshTokenTtl)
@@ -52,6 +55,7 @@ func New(ctx context.Context, cfg *config.Config) *App {
 	userService := user_service.New(userRepository)
 	jwtManager := jwt.New(cfg.Jwt.Secret, cfg.Jwt.AccessTokenTtl)
 	sessionService := session_service.New(sessionRepository, jwtManager, cfg.Jwt.RefreshTokenTtl)
+	categoryService := category_service.New(categoryRepository)
 
 	emailQueue, err := email.New(ctx, email.EmailConfig{
 		Host:     cfg.Mail.Host,
@@ -67,7 +71,7 @@ func New(ctx context.Context, cfg *config.Config) *App {
 	authService := auth_service.New(userService, tokenService, emailQueue, sessionService)
 
 	log.Info("init server")
-	server, err := server.New(ctx, cfg.Server, authService, userService, sessionService)
+	server, err := server.New(ctx, cfg.Server, authService, userService, sessionService, categoryService)
 	if err != nil {
 		log.Error("failed to init server", logger.Err(err))
 		os.Exit(1)

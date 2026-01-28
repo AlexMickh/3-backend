@@ -38,7 +38,6 @@ func TestRegister(t *testing.T) {
 				ctx: context.Background(),
 				req: dtos.RegisterDto{
 					Email:    "example@email.com",
-					Phone:    "89543476748",
 					Password: "12345",
 				},
 			},
@@ -55,7 +54,6 @@ func TestRegister(t *testing.T) {
 				ctx: context.Background(),
 				req: dtos.RegisterDto{
 					Email:    "example@email.com",
-					Phone:    "89543476748",
 					Password: "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
 				},
 			},
@@ -72,7 +70,6 @@ func TestRegister(t *testing.T) {
 				ctx: context.Background(),
 				req: dtos.RegisterDto{
 					Email:    "example@email.com",
-					Phone:    "89543476748",
 					Password: "1",
 				},
 			},
@@ -89,7 +86,6 @@ func TestRegister(t *testing.T) {
 				ctx: context.Background(),
 				req: dtos.RegisterDto{
 					Email:    "example@email.com",
-					Phone:    "89543476748",
 					Password: "12345",
 				},
 			},
@@ -109,7 +105,6 @@ func TestRegister(t *testing.T) {
 			userService := NewMockUserService(t)
 			userService.EXPECT().CreateUser(
 				mock.AnythingOfType("context.backgroundCtx"),
-				mock.AnythingOfType("string"),
 				mock.AnythingOfType("string"),
 				mock.AnythingOfType("string"),
 			).Return(tt.wantUserMockReturn, tt.wantUserMockErr).Maybe()

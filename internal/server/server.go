@@ -5,17 +5,23 @@ import (
 	"fmt"
 	"net/http"
 
+	_ "github.com/AlexMickh/shop-backend/docs"
 	"github.com/AlexMickh/shop-backend/internal/config"
 	"github.com/AlexMickh/shop-backend/internal/dtos"
+	"github.com/AlexMickh/shop-backend/internal/models"
 	"github.com/AlexMickh/shop-backend/internal/server/handlers/auth/login"
 	"github.com/AlexMickh/shop-backend/internal/server/handlers/auth/refresh"
 	"github.com/AlexMickh/shop-backend/internal/server/handlers/auth/register"
+	create_category "github.com/AlexMickh/shop-backend/internal/server/handlers/category/create"
+	delete_category "github.com/AlexMickh/shop-backend/internal/server/handlers/category/delete"
+	get_categories "github.com/AlexMickh/shop-backend/internal/server/handlers/category/get"
 	"github.com/AlexMickh/shop-backend/internal/server/handlers/user/verify"
 	"github.com/AlexMickh/shop-backend/pkg/logger"
 	"github.com/AlexMickh/shop-backend/pkg/response"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-playground/validator/v10"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 type Server struct {
@@ -36,12 +42,26 @@ type SessionService interface {
 	ValidateJwt(token string) (int64, error)
 }
 
+type CategoryService interface {
+	CreateCategory(ctx context.Context, req dtos.CreateCategoryRequest) (int64, error)
+	DeleteCategory(ctx context.Context, id int64) error
+	AllCategories(ctx context.Context) ([]models.Category, error)
+}
+
+// @title						Three Api
+// @version					1.0
+// @description				Your API description
+// @securityDefinitions.apikey	UserAuth
+// @in							header
+// @name						Authorization
+// @securityDefinitions.basic	AdminAuth
 func New(
 	ctx context.Context,
 	cfg config.ServerConfig,
 	authService AuthService,
 	userService UserService,
 	sessionService SessionService,
+	categoryService CategoryService,
 ) (*Server, error) {
 	const op = "server.New"
 
@@ -52,6 +72,10 @@ func New(
 	r.Use(middleware.RequestID)
 	r.Use(logger.ChiMiddleware(ctx))
 	r.Use(middleware.Recoverer)
+
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL(fmt.Sprintf("http://%s/swagger/doc.json", cfg.Addr)), //The url pointing to API definition
+	))
 
 	r.Get("/health-check", response.ErrorWrapper(func(w http.ResponseWriter, r *http.Request) error {
 		logger.FromCtx(r.Context()).Info("hello")
@@ -67,6 +91,18 @@ func New(
 
 	r.Route("/user", func(r chi.Router) {
 		r.Get("/verify/{token}", response.ErrorWrapper(verify.New(userService)))
+	})
+
+	r.Route("/admin", func(r chi.Router) {
+		r.Use(middleware.BasicAuth("admin-auth", map[string]string{
+			cfg.AdminLogin: cfg.AdminPassword,
+		}))
+		r.Post("/create-category", response.ErrorWrapper(create_category.New(validator, categoryService)))
+		r.Delete("/delete-category/{id}", response.ErrorWrapper(delete_category.New(validator, categoryService)))
+	})
+
+	r.Route("/categories", func(r chi.Router) {
+		r.Get("/", response.ErrorWrapper(get_categories.New(validator, categoryService)))
 	})
 
 	return &Server{

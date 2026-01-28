@@ -10,7 +10,13 @@ tasks:
     cmds:
       - go run ./cmd/migrator/main.go
 
+  swag:
+    cmds:
+      - swag fmt
+      - swag init -d ./internal/server -g server.go --pdl 3
+
   build:
+    deps: [swag]
     cmd: go build -o bin/main cmd/main/main.go
     silent: true
 

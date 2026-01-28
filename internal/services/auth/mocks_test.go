@@ -39,8 +39,8 @@ func (_m *MockUserService) EXPECT() *MockUserService_Expecter {
 }
 
 // CreateUser provides a mock function for the type MockUserService
-func (_mock *MockUserService) CreateUser(ctx context.Context, email string, phone string, password string) (int64, error) {
-	ret := _mock.Called(ctx, email, phone, password)
+func (_mock *MockUserService) CreateUser(ctx context.Context, email string, password string) (int64, error) {
+	ret := _mock.Called(ctx, email, password)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateUser")
@@ -48,16 +48,16 @@ func (_mock *MockUserService) CreateUser(ctx context.Context, email string, phon
 
 	var r0 int64
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string) (int64, error)); ok {
-		return returnFunc(ctx, email, phone, password)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (int64, error)); ok {
+		return returnFunc(ctx, email, password)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, string) int64); ok {
-		r0 = returnFunc(ctx, email, phone, password)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) int64); ok {
+		r0 = returnFunc(ctx, email, password)
 	} else {
 		r0 = ret.Get(0).(int64)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
-		r1 = returnFunc(ctx, email, phone, password)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = returnFunc(ctx, email, password)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -72,13 +72,12 @@ type MockUserService_CreateUser_Call struct {
 // CreateUser is a helper method to define mock.On call
 //   - ctx context.Context
 //   - email string
-//   - phone string
 //   - password string
-func (_e *MockUserService_Expecter) CreateUser(ctx interface{}, email interface{}, phone interface{}, password interface{}) *MockUserService_CreateUser_Call {
-	return &MockUserService_CreateUser_Call{Call: _e.mock.On("CreateUser", ctx, email, phone, password)}
+func (_e *MockUserService_Expecter) CreateUser(ctx interface{}, email interface{}, password interface{}) *MockUserService_CreateUser_Call {
+	return &MockUserService_CreateUser_Call{Call: _e.mock.On("CreateUser", ctx, email, password)}
 }
 
-func (_c *MockUserService_CreateUser_Call) Run(run func(ctx context.Context, email string, phone string, password string)) *MockUserService_CreateUser_Call {
+func (_c *MockUserService_CreateUser_Call) Run(run func(ctx context.Context, email string, password string)) *MockUserService_CreateUser_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -92,15 +91,10 @@ func (_c *MockUserService_CreateUser_Call) Run(run func(ctx context.Context, ema
 		if args[2] != nil {
 			arg2 = args[2].(string)
 		}
-		var arg3 string
-		if args[3] != nil {
-			arg3 = args[3].(string)
-		}
 		run(
 			arg0,
 			arg1,
 			arg2,
-			arg3,
 		)
 	})
 	return _c
@@ -111,7 +105,7 @@ func (_c *MockUserService_CreateUser_Call) Return(n int64, err error) *MockUserS
 	return _c
 }
 
-func (_c *MockUserService_CreateUser_Call) RunAndReturn(run func(ctx context.Context, email string, phone string, password string) (int64, error)) *MockUserService_CreateUser_Call {
+func (_c *MockUserService_CreateUser_Call) RunAndReturn(run func(ctx context.Context, email string, password string) (int64, error)) *MockUserService_CreateUser_Call {
 	_c.Call.Return(run)
 	return _c
 }

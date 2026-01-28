@@ -9,7 +9,7 @@ import (
 )
 
 type UserRepository interface {
-	SaveUser(ctx context.Context, email, phone, password string) (int64, error)
+	SaveUser(ctx context.Context, email, password string) (int64, error)
 	UserByEmail(ctx context.Context, email string) (models.User, error)
 	VerifyEmail(ctx context.Context, token string) error
 }
@@ -24,10 +24,10 @@ func New(userRepository UserRepository) *UserService {
 	}
 }
 
-func (u *UserService) CreateUser(ctx context.Context, email, phone, password string) (int64, error) {
+func (u *UserService) CreateUser(ctx context.Context, email, password string) (int64, error) {
 	const op = "services.user.CreateUser"
 
-	userID, err := u.userRepository.SaveUser(ctx, email, phone, password)
+	userID, err := u.userRepository.SaveUser(ctx, email, password)
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}

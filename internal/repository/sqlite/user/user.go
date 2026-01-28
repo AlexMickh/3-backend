@@ -26,12 +26,12 @@ func New(db DB) *UserRepository {
 	}
 }
 
-func (u *UserRepository) SaveUser(ctx context.Context, email, phone, password string) (int64, error) {
+func (u *UserRepository) SaveUser(ctx context.Context, email, password string) (int64, error) {
 	const op = "repository.sqlite.user.CreateUser"
 
-	query := "INSERT INTO users (email, phone, password) VALUES (?, ?, ?) RETURNING id"
+	query := "INSERT INTO users (email, password) VALUES (?, ?) RETURNING id"
 	var id int64
-	err := u.db.QueryRowContext(ctx, query, email, phone, password).Scan(&id)
+	err := u.db.QueryRowContext(ctx, query, email, password).Scan(&id)
 	if err != nil {
 		if sqliteErr, ok := err.(sqlite3.Error); ok && sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique {
 			return 0, fmt.Errorf("%s: %w", op, errs.ErrUserAlreadyExists)

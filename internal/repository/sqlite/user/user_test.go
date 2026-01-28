@@ -15,7 +15,6 @@ func TestUserRepository_SaveUser(t *testing.T) {
 	type args struct {
 		ctx      context.Context
 		email    string
-		phone    string
 		password string
 	}
 
@@ -33,7 +32,6 @@ func TestUserRepository_SaveUser(t *testing.T) {
 			args: args{
 				ctx:      context.Background(),
 				email:    "example@mail.com",
-				phone:    "87654321019",
 				password: "some password",
 			},
 			want:      1,
@@ -45,7 +43,6 @@ func TestUserRepository_SaveUser(t *testing.T) {
 			args: args{
 				ctx:      context.Background(),
 				email:    "example@mail.com",
-				phone:    "87654321019",
 				password: "some password",
 			},
 			want:      1,
@@ -57,7 +54,6 @@ func TestUserRepository_SaveUser(t *testing.T) {
 			args: args{
 				ctx:      context.Background(),
 				email:    "example@mail.com",
-				phone:    "87654321019",
 				password: "some password",
 			},
 			want:      1,
@@ -76,18 +72,18 @@ func TestUserRepository_SaveUser(t *testing.T) {
 			if tt.wantDbErr == nil {
 				row := sqlmock.NewRows([]string{"id"}).AddRow(tt.want)
 				mock.ExpectQuery("INSERT INTO users").
-					WithArgs(tt.args.email, tt.args.phone, tt.args.password).
+					WithArgs(tt.args.email, tt.args.password).
 					WillReturnRows(row)
 			} else {
 				mock.ExpectQuery("INSERT INTO users").
-					WithArgs(tt.args.email, tt.args.phone, tt.args.password).
+					WithArgs(tt.args.email, tt.args.password).
 					WillReturnError(tt.wantDbErr)
 			}
 
 			u := &UserRepository{
 				db: db,
 			}
-			got, err := u.SaveUser(tt.args.ctx, tt.args.email, tt.args.phone, tt.args.password)
+			got, err := u.SaveUser(tt.args.ctx, tt.args.email, tt.args.password)
 			require.ErrorIs(t, err, tt.wantErr)
 
 			if err == nil {

@@ -11,7 +11,7 @@ import (
 )
 
 type UserService interface {
-	CreateUser(ctx context.Context, email, phone, password string) (int64, error)
+	CreateUser(ctx context.Context, email, password string) (int64, error)
 	UserByEmail(ctx context.Context, email string) (models.User, error)
 }
 
@@ -52,7 +52,7 @@ func (a *AuthService) Register(ctx context.Context, req dtos.RegisterDto) (int64
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 
-	userID, err := a.userService.CreateUser(ctx, req.Email, req.Phone, string(hashPassword))
+	userID, err := a.userService.CreateUser(ctx, req.Email, string(hashPassword))
 	if err != nil {
 		return 0, fmt.Errorf("%s: %w", op, err)
 	}

@@ -1,7 +1,7 @@
 package dtos
 
 type RefreshRequest struct {
-	RefreshToken string `json:"refresh_token" validate:"required,len=32"`
+	RefreshToken string `json:"refresh_token" validate:"required,len=64"`
 }
 
 type RefreshResponse struct {

@@ -17,6 +17,21 @@ type Refresher interface {
 	Refresh(req dtos.RefreshRequest) (string, string, error)
 }
 
+// New godoc
+//
+//	@Summary		generate new pare of tokens
+//	@Description	generate new pare of tokens
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			refresh_token	body		string	true	"Refresh token"
+//	@Success		201				{object}	dtos.RefreshResponse
+//	@Failure		400				{object}	response.ErrorResponse
+//	@Failure		401				{object}	response.ErrorResponse
+//	@Failure		404				{object}	response.ErrorResponse
+//	@Failure		500				{object}	response.ErrorResponse
+//	@Security		UserAuth
+//	@Router			/auth/refresh [put]
 func New(validator *validator.Validate, refresher Refresher) response.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		const op = "handlers.auth.refresh.New"
@@ -31,7 +46,7 @@ func New(validator *validator.Validate, refresher Refresher) response.HandlerFun
 		}
 
 		if err = validator.Struct(&req); err != nil {
-			log.Error("failed to validate request")
+			log.Error("failed to validate request", logger.Err(err))
 			return response.Error("failed to validate request", http.StatusBadRequest)
 		}
 
@@ -46,6 +61,7 @@ func New(validator *validator.Validate, refresher Refresher) response.HandlerFun
 			response.Error("failed to refresh", http.StatusInternalServerError)
 		}
 
+		render.Status(r, http.StatusCreated)
 		render.JSON(w, r, dtos.RefreshResponse{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
