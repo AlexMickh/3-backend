@@ -7,15 +7,18 @@ import (
 	"os"
 
 	"github.com/AlexMickh/shop-backend/internal/config"
+	file_storage "github.com/AlexMickh/shop-backend/internal/file_storage/fs"
 	"github.com/AlexMickh/shop-backend/internal/lib/jwt"
 	"github.com/AlexMickh/shop-backend/internal/models"
 	session_repository "github.com/AlexMickh/shop-backend/internal/repository/inmemory/session"
 	category_repository "github.com/AlexMickh/shop-backend/internal/repository/sqlite/category"
+	product_repository "github.com/AlexMickh/shop-backend/internal/repository/sqlite/product"
 	token_repository "github.com/AlexMickh/shop-backend/internal/repository/sqlite/token"
 	user_repository "github.com/AlexMickh/shop-backend/internal/repository/sqlite/user"
 	"github.com/AlexMickh/shop-backend/internal/server"
 	auth_service "github.com/AlexMickh/shop-backend/internal/services/auth"
 	category_service "github.com/AlexMickh/shop-backend/internal/services/category"
+	product_service "github.com/AlexMickh/shop-backend/internal/services/product"
 	session_service "github.com/AlexMickh/shop-backend/internal/services/session"
 	token_service "github.com/AlexMickh/shop-backend/internal/services/token"
 	user_service "github.com/AlexMickh/shop-backend/internal/services/user"
@@ -45,10 +48,18 @@ func New(ctx context.Context, cfg *config.Config) *App {
 	userRepository := user_repository.New(db)
 	tokenRepository := token_repository.New(db)
 	categoryRepository := category_repository.New(db)
+	productRepository := product_repository.New(db)
 
 	log.Info("initing cash")
 	sessionCash := cash.New[string, models.Session](ctx, cfg.Jwt.RefreshTokenTtl)
 	sessionRepository := session_repository.New(sessionCash)
+
+	log.Info("initing file storage")
+	fileStorage, err := file_storage.New("./public")
+	if err != nil {
+		log.Error("failed to init file storage", logger.Err(err))
+		os.Exit(1)
+	}
 
 	log.Info("initing service layer")
 	tokenService := token_service.New(tokenRepository, cfg.Tokens.VerifyEmailTokenTtl)
@@ -56,6 +67,7 @@ func New(ctx context.Context, cfg *config.Config) *App {
 	jwtManager := jwt.New(cfg.Jwt.Secret, cfg.Jwt.AccessTokenTtl)
 	sessionService := session_service.New(sessionRepository, jwtManager, cfg.Jwt.RefreshTokenTtl)
 	categoryService := category_service.New(categoryRepository)
+	productService := product_service.New(productRepository, fileStorage)
 
 	emailQueue, err := email.New(ctx, email.EmailConfig{
 		Host:     cfg.Mail.Host,
@@ -71,7 +83,15 @@ func New(ctx context.Context, cfg *config.Config) *App {
 	authService := auth_service.New(userService, tokenService, emailQueue, sessionService)
 
 	log.Info("init server")
-	server, err := server.New(ctx, cfg.Server, authService, userService, sessionService, categoryService)
+	server, err := server.New(
+		ctx,
+		cfg.Server,
+		authService,
+		userService,
+		sessionService,
+		categoryService,
+		productService,
+	)
 	if err != nil {
 		log.Error("failed to init server", logger.Err(err))
 		os.Exit(1)

@@ -15,6 +15,7 @@ import (
 	create_category "github.com/AlexMickh/shop-backend/internal/server/handlers/category/create"
 	delete_category "github.com/AlexMickh/shop-backend/internal/server/handlers/category/delete"
 	get_categories "github.com/AlexMickh/shop-backend/internal/server/handlers/category/get"
+	create_product "github.com/AlexMickh/shop-backend/internal/server/handlers/product/create"
 	"github.com/AlexMickh/shop-backend/internal/server/handlers/user/verify"
 	"github.com/AlexMickh/shop-backend/pkg/logger"
 	"github.com/AlexMickh/shop-backend/pkg/response"
@@ -48,6 +49,10 @@ type CategoryService interface {
 	AllCategories(ctx context.Context) ([]models.Category, error)
 }
 
+type ProductService interface {
+	CreateProduct(ctx context.Context, req dtos.CreateProductRequest) (int64, error)
+}
+
 // @title						Three Api
 // @version					1.0
 // @description				Your API description
@@ -62,6 +67,7 @@ func New(
 	userService UserService,
 	sessionService SessionService,
 	categoryService CategoryService,
+	productService ProductService,
 ) (*Server, error) {
 	const op = "server.New"
 
@@ -97,8 +103,15 @@ func New(
 		r.Use(middleware.BasicAuth("admin-auth", map[string]string{
 			cfg.AdminLogin: cfg.AdminPassword,
 		}))
-		r.Post("/create-category", response.ErrorWrapper(create_category.New(validator, categoryService)))
-		r.Delete("/delete-category/{id}", response.ErrorWrapper(delete_category.New(validator, categoryService)))
+
+		r.Route("/category", func(r chi.Router) {
+			r.Post("/", response.ErrorWrapper(create_category.New(validator, categoryService)))
+			r.Delete("/{id}", response.ErrorWrapper(delete_category.New(validator, categoryService)))
+		})
+
+		r.Route("/product", func(r chi.Router) {
+			r.Post("/", response.ErrorWrapper(create_product.New(validator, productService)))
+		})
 	})
 
 	r.Route("/categories", func(r chi.Router) {

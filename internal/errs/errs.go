@@ -11,4 +11,6 @@ var (
 	ErrSessionNotFound       = errors.New("session not found")
 	ErrCategoryAlreadyExists = errors.New("category already exists")
 	ErrCategoryNotFound      = errors.New("category not found")
+	ErrUnsupportedImageType  = errors.New("unsupported image type (only png)")
+	ErrProductAlreadyExists  = errors.New("producct already exists")
 )

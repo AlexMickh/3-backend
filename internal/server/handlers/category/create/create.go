@@ -32,7 +32,7 @@ type CategoryCreater interface {
 //	@Failure		409		{object}	response.ErrorResponse
 //	@Failure		500		{object}	response.ErrorResponse
 //	@Security		AdminAuth
-//	@Router			/admin/create-category [post]
+//	@Router			/admin/category [post]
 func New(validator *validator.Validate, categoryCreater CategoryCreater) response.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		const op = "handlers.category.create.New"

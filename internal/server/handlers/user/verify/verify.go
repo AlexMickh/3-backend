@@ -17,7 +17,7 @@ type EmailVerifier interface {
 
 func New(emailVerifier EmailVerifier) response.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		const op = "handlers.auth.verify.New"
+		const op = "handlers.user.verify.New"
 		ctx := r.Context()
 		log := logger.FromCtx(ctx).With(slog.String("op", op))
 

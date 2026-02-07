@@ -48,7 +48,7 @@ info:
   title: Three Api
   version: "1.0"
 paths:
-  /admin/create-category:
+  /admin/category:
     post:
       consumes:
       - application/json
@@ -88,7 +88,7 @@ paths:
       summary: create new category
       tags:
       - admin
-  /admin/delete-category/{id}:
+  /admin/category/{id}:
     delete:
       consumes:
       - application/json
@@ -123,6 +123,75 @@ paths:
       security:
       - AdminAuth: []
       summary: delete category
+      tags:
+      - admin
+  /admin/product:
+    post:
+      consumes:
+      - application/json
+      description: create new product
+      parameters:
+      - description: product name
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: product description
+        in: formData
+        name: description
+        required: true
+        type: string
+      - description: product proce
+        in: formData
+        name: price
+        required: true
+        type: integer
+      - description: product category id
+        in: formData
+        name: category_id
+        required: true
+        type: string
+      - description: product quantity
+        in: formData
+        name: quantity
+        required: true
+        type: integer
+      - description: product sizes
+        in: formData
+        name: existing_sizes
+        required: true
+        type: string
+      - description: product image
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dtos.CreateCategoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - AdminAuth: []
+      summary: create new product
       tags:
       - admin
   /auth/login:

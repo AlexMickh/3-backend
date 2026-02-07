@@ -31,7 +31,7 @@ type CategoryDeleter interface {
 //	@Failure		404	{object}	response.ErrorResponse
 //	@Failure		500	{object}	response.ErrorResponse
 //	@Security		AdminAuth
-//	@Router			/admin/delete-category/{id} [delete]
+//	@Router			/admin/category/{id} [delete]
 func New(validator *validator.Validate, categoryDeleter CategoryDeleter) response.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		const op = "handlers.category.delete.New"
