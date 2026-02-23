@@ -11,12 +11,65 @@ definitions:
           $ref: '#/definitions/dtos.category'
         type: array
     type: object
+  dtos.GetProductsResponse:
+    properties:
+      products:
+        items:
+          $ref: '#/definitions/dtos.Product'
+        type: array
+    type: object
   dtos.LoginResponse:
     properties:
       access_token:
         type: string
       refresh_token:
         type: string
+    type: object
+  dtos.Product:
+    properties:
+      discount:
+        type: integer
+      discount_expires_at:
+        type: string
+      id:
+        type: integer
+      image_url:
+        type: string
+      name:
+        type: string
+      price:
+        type: integer
+    type: object
+  dtos.ProductByIdResponse:
+    properties:
+      category:
+        properties:
+          id:
+            format: int64
+            type: integer
+          name:
+            type: string
+        type: object
+      description:
+        type: string
+      discount:
+        type: integer
+      discount_expires_at:
+        type: string
+      existing_sizes:
+        items:
+          type: string
+        type: array
+      id:
+        type: integer
+      image_url:
+        type: string
+      name:
+        type: string
+      price:
+        type: integer
+      quantity:
+        type: integer
     type: object
   dtos.RefreshResponse:
     properties:
@@ -48,7 +101,7 @@ info:
   title: Three Api
   version: "1.0"
 paths:
-  /admin/category:
+  /admin/categories:
     post:
       consumes:
       - application/json
@@ -88,7 +141,7 @@ paths:
       summary: create new category
       tags:
       - admin
-  /admin/category/{id}:
+  /admin/categories/{id}:
     delete:
       consumes:
       - application/json
@@ -125,7 +178,7 @@ paths:
       summary: delete category
       tags:
       - admin
-  /admin/product:
+  /admin/products:
     post:
       consumes:
       - application/json
@@ -192,6 +245,111 @@ paths:
       security:
       - AdminAuth: []
       summary: create new product
+      tags:
+      - admin
+  /admin/products/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete product
+      parameters:
+      - description: product id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - AdminAuth: []
+      summary: delete product
+      tags:
+      - admin
+    patch:
+      consumes:
+      - application/json
+      description: update product
+      parameters:
+      - description: product id
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: new product name
+        in: formData
+        name: name
+        type: string
+      - description: new product description
+        in: formData
+        name: description
+        type: string
+      - description: new product proce
+        in: formData
+        name: price
+        type: integer
+      - description: new product quantity
+        in: formData
+        name: quantity
+        type: integer
+      - description: new product sizes
+        in: formData
+        name: existing_sizes
+        type: string
+      - description: new product image
+        in: formData
+        name: image
+        type: file
+      - description: new product discount
+        in: formData
+        name: discount
+        type: integer
+      - description: new product discount expires at (only if discount exists)
+        in: formData
+        name: discount_expires_at
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - AdminAuth: []
+      summary: update product
       tags:
       - admin
   /auth/login:
@@ -339,6 +497,84 @@ paths:
       summary: get all categories
       tags:
       - categories
+  /products:
+    get:
+      consumes:
+      - application/json
+      description: get products list
+      parameters:
+      - description: page for pagination
+        in: query
+        name: page
+        required: true
+        type: integer
+      - description: enable filtering by popularity
+        in: query
+        name: popularity
+        type: boolean
+      - description: enable filtering by price
+        in: query
+        name: price
+        type: integer
+      - description: products category id
+        in: query
+        name: category_id
+        type: integer
+      - description: search patern
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.GetProductsResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: get products list
+      tags:
+      - products
+  /products/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get product by id
+      parameters:
+      - description: product id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.ProductByIdResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: get product by id
+      tags:
+      - products
 securityDefinitions:
   AdminAuth:
     type: basic

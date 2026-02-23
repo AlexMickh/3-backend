@@ -1,5 +1,6 @@
 /bin
 /.vscode
+/public
 .env
 coverage.html
 3_dev.session.sql

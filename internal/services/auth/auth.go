@@ -20,7 +20,7 @@ type TokenService interface {
 }
 
 type SessionService interface {
-	CreateSession(userID int64, role models.UserRole) (string, string, error)
+	CreateSession(userID int64) (string, string, error)
 }
 
 type AuthService struct {
@@ -80,7 +80,7 @@ func (a *AuthService) Login(ctx context.Context, req dtos.LoginRequest) (string,
 		return "", "", fmt.Errorf("%s: %w", op, errs.ErrUserNotFound)
 	}
 
-	accessToken, refreshToken, err := a.sessionService.CreateSession(user.ID, models.UserRoleUser)
+	accessToken, refreshToken, err := a.sessionService.CreateSession(user.ID)
 	if err != nil {
 		return "", "", fmt.Errorf("%s: %w", op, err)
 	}

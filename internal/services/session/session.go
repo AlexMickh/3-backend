@@ -14,7 +14,7 @@ type SessionRepository interface {
 }
 
 type JwtManager interface {
-	NewJwt(userID int64, role models.UserRole) (string, error)
+	NewJwt(userID int64) (string, error)
 	NewRefresh() (string, error)
 	Validate(token string) (int64, error)
 }
@@ -33,10 +33,10 @@ func New(repository SessionRepository, jwtManager JwtManager, sessionTtl time.Du
 	}
 }
 
-func (s *SessionService) CreateSession(userID int64, role models.UserRole) (string, string, error) {
+func (s *SessionService) CreateSession(userID int64) (string, string, error) {
 	const op = "services.session.CreateSession"
 
-	accessToken, err := s.jwtManager.NewJwt(userID, role)
+	accessToken, err := s.jwtManager.NewJwt(userID)
 	if err != nil {
 		return "", "", fmt.Errorf("%s: %w", op, err)
 	}
@@ -49,7 +49,6 @@ func (s *SessionService) CreateSession(userID int64, role models.UserRole) (stri
 	session := models.Session{
 		Token:          refreshToken,
 		UserID:         userID,
-		Role:           role,
 		ExpiresAtField: time.Now().Add(s.sessionTtl),
 	}
 	s.repository.SaveSession(session)
@@ -65,7 +64,7 @@ func (s *SessionService) Refresh(req dtos.RefreshRequest) (string, string, error
 		return "", "", fmt.Errorf("%s: %w", op, err)
 	}
 
-	accessToken, err := s.jwtManager.NewJwt(session.UserID, session.Role)
+	accessToken, err := s.jwtManager.NewJwt(session.UserID)
 	if err != nil {
 		return "", "", fmt.Errorf("%s: %w", op, err)
 	}
@@ -78,7 +77,6 @@ func (s *SessionService) Refresh(req dtos.RefreshRequest) (string, string, error
 	newSession := models.Session{
 		Token:          refreshToken,
 		UserID:         session.UserID,
-		Role:           session.Role,
 		ExpiresAtField: time.Now().Add(s.sessionTtl),
 	}
 	s.repository.SaveSession(newSession)

@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AlexMickh/shop-backend/internal/models"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,7 +15,6 @@ func TestJwtManager_NewJwt(t *testing.T) {
 	}
 	type args struct {
 		userID int64
-		role   models.UserRole
 	}
 
 	var id int64 = 1
@@ -45,7 +43,7 @@ func TestJwtManager_NewJwt(t *testing.T) {
 				secret: tt.fields.secret,
 				jwtTtl: tt.fields.jwtTtl,
 			}
-			got, err := j.NewJwt(tt.args.userID, tt.args.role)
+			got, err := j.NewJwt(tt.args.userID)
 			require.ErrorIs(t, err, tt.wantErr)
 			fmt.Println(got)
 		})

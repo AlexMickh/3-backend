@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/AlexMickh/shop-backend/internal/models"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -22,15 +21,14 @@ func New(secret string, jwtTtl time.Duration) *JwtManager {
 	}
 }
 
-func (j *JwtManager) NewJwt(userID int64, role models.UserRole) (string, error) {
-	const op = "lib.jwt.NewJwt"
+func (j *JwtManager) NewJwt(userID int64) (string, error) {
+	const op = "pkg.jwt.NewJwt"
 
 	token := jwt.New(jwt.SigningMethodHS256)
 
 	claims := token.Claims.(jwt.MapClaims)
 	claims["sub"] = userID
 	claims["exp"] = time.Now().Add(j.jwtTtl).Unix()
-	claims["role"] = string(role)
 
 	tokenString, err := token.SignedString([]byte(j.secret))
 	if err != nil {
@@ -41,7 +39,7 @@ func (j *JwtManager) NewJwt(userID int64, role models.UserRole) (string, error) 
 }
 
 func (j *JwtManager) NewRefresh() (string, error) {
-	const op = "lib.jwt.NewRefresh"
+	const op = "pkg.jwt.NewRefresh"
 
 	b := make([]byte, 32)
 
@@ -56,7 +54,7 @@ func (j *JwtManager) NewRefresh() (string, error) {
 }
 
 func (j *JwtManager) Validate(token string) (int64, error) {
-	const op = "lib.jwt.Validate"
+	const op = "pkg.jwt.Validate"
 
 	claims := jwt.MapClaims{}
 	_, err := jwt.ParseWithClaims(token, &claims, func(t *jwt.Token) (any, error) {

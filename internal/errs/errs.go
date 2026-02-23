@@ -13,4 +13,5 @@ var (
 	ErrCategoryNotFound      = errors.New("category not found")
 	ErrUnsupportedImageType  = errors.New("unsupported image type (only png)")
 	ErrProductAlreadyExists  = errors.New("producct already exists")
+	ErrProductNotFound       = errors.New("product not found")
 )

@@ -15,7 +15,11 @@ import (
 	create_category "github.com/AlexMickh/shop-backend/internal/server/handlers/category/create"
 	delete_category "github.com/AlexMickh/shop-backend/internal/server/handlers/category/delete"
 	get_categories "github.com/AlexMickh/shop-backend/internal/server/handlers/category/get"
+	product_by_id "github.com/AlexMickh/shop-backend/internal/server/handlers/product/by_id"
 	create_product "github.com/AlexMickh/shop-backend/internal/server/handlers/product/create"
+	delete_product "github.com/AlexMickh/shop-backend/internal/server/handlers/product/delete"
+	get_products "github.com/AlexMickh/shop-backend/internal/server/handlers/product/get"
+	update_product "github.com/AlexMickh/shop-backend/internal/server/handlers/product/update"
 	"github.com/AlexMickh/shop-backend/internal/server/handlers/user/verify"
 	"github.com/AlexMickh/shop-backend/pkg/logger"
 	"github.com/AlexMickh/shop-backend/pkg/response"
@@ -26,7 +30,8 @@ import (
 )
 
 type Server struct {
-	srv *http.Server
+	srv        *http.Server
+	fileServer *http.Server
 }
 
 type AuthService interface {
@@ -51,6 +56,10 @@ type CategoryService interface {
 
 type ProductService interface {
 	CreateProduct(ctx context.Context, req dtos.CreateProductRequest) (int64, error)
+	ProductById(ctx context.Context, id int64) (*models.Product, error)
+	ProductCards(ctx context.Context, req dtos.GetProductsRequest) ([]models.ProductCard, error)
+	UpdateProduct(ctx context.Context, req *dtos.UpdateProductRequest) error
+	DeleteProduct(ctx context.Context, id int64) error
 }
 
 // @title						Three Api
@@ -104,18 +113,25 @@ func New(
 			cfg.AdminLogin: cfg.AdminPassword,
 		}))
 
-		r.Route("/category", func(r chi.Router) {
+		r.Route("/categories", func(r chi.Router) {
 			r.Post("/", response.ErrorWrapper(create_category.New(validator, categoryService)))
 			r.Delete("/{id}", response.ErrorWrapper(delete_category.New(validator, categoryService)))
 		})
 
-		r.Route("/product", func(r chi.Router) {
+		r.Route("/products", func(r chi.Router) {
 			r.Post("/", response.ErrorWrapper(create_product.New(validator, productService)))
+			r.Patch("/{id}", response.ErrorWrapper(update_product.New(validator, productService)))
+			r.Delete("/{id}", response.ErrorWrapper(delete_product.New(productService)))
 		})
 	})
 
 	r.Route("/categories", func(r chi.Router) {
 		r.Get("/", response.ErrorWrapper(get_categories.New(validator, categoryService)))
+	})
+
+	r.Route("/products", func(r chi.Router) {
+		r.Get("/{id}", response.ErrorWrapper(product_by_id.New(validator, productService)))
+		r.Get("/", response.ErrorWrapper(get_products.New(validator, productService)))
 	})
 
 	return &Server{
@@ -126,11 +142,20 @@ func New(
 			WriteTimeout: cfg.Timeout,
 			IdleTimeout:  cfg.IdleTimeout,
 		},
+		fileServer: &http.Server{
+			Addr:         cfg.FileServerAddr,
+			Handler:      http.FileServer(http.Dir("./public")),
+			ReadTimeout:  cfg.Timeout,
+			WriteTimeout: cfg.Timeout,
+			IdleTimeout:  cfg.IdleTimeout,
+		},
 	}, nil
 }
 
 func (s *Server) Run(ctx context.Context) error {
 	const op = "server.Run"
+
+	go s.fileServer.ListenAndServe()
 
 	if err := s.srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		return fmt.Errorf("%s: %w", op, err)
@@ -143,6 +168,10 @@ func (s *Server) GracefulStop(ctx context.Context) error {
 	const op = "server.GracefulStop"
 
 	if err := s.srv.Shutdown(ctx); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if err := s.fileServer.Shutdown(ctx); err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 

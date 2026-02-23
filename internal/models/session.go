@@ -7,7 +7,6 @@ import (
 type Session struct {
 	Token          string
 	UserID         int64
-	Role           UserRole
 	ExpiresAtField time.Time
 }
 

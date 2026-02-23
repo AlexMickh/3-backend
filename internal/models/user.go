@@ -10,7 +10,7 @@ const (
 type User struct {
 	ID              int64
 	Email           string
-	Phone           string
+	Phone           *string
 	Password        string
 	Role            UserRole
 	IsEmailVerified bool

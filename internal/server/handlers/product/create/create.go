@@ -42,7 +42,7 @@ type ProductCreater interface {
 //	@Failure		409				{object}	response.ErrorResponse
 //	@Failure		500				{object}	response.ErrorResponse
 //	@Security		AdminAuth
-//	@Router			/admin/product [post]
+//	@Router			/admin/products [post]
 func New(validator *validator.Validate, productCreater ProductCreater) response.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		const op = "handlers.product.create.New"

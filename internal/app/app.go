@@ -8,7 +8,6 @@ import (
 
 	"github.com/AlexMickh/shop-backend/internal/config"
 	file_storage "github.com/AlexMickh/shop-backend/internal/file_storage/fs"
-	"github.com/AlexMickh/shop-backend/internal/lib/jwt"
 	"github.com/AlexMickh/shop-backend/internal/models"
 	session_repository "github.com/AlexMickh/shop-backend/internal/repository/inmemory/session"
 	category_repository "github.com/AlexMickh/shop-backend/internal/repository/sqlite/category"
@@ -25,12 +24,14 @@ import (
 	"github.com/AlexMickh/shop-backend/pkg/cash"
 	sqlite_client "github.com/AlexMickh/shop-backend/pkg/clients/sqlite"
 	"github.com/AlexMickh/shop-backend/pkg/email"
+	"github.com/AlexMickh/shop-backend/pkg/jwt"
 	"github.com/AlexMickh/shop-backend/pkg/logger"
 )
 
 type App struct {
 	db     *sql.DB
 	server *server.Server
+	cfg    *config.Config
 }
 
 func New(ctx context.Context, cfg *config.Config) *App {
@@ -55,7 +56,7 @@ func New(ctx context.Context, cfg *config.Config) *App {
 	sessionRepository := session_repository.New(sessionCash)
 
 	log.Info("initing file storage")
-	fileStorage, err := file_storage.New("./public")
+	fileStorage, err := file_storage.New("./public", cfg.Server.FileServerAddr)
 	if err != nil {
 		log.Error("failed to init file storage", logger.Err(err))
 		os.Exit(1)
@@ -100,6 +101,7 @@ func New(ctx context.Context, cfg *config.Config) *App {
 	return &App{
 		db:     db,
 		server: server,
+		cfg:    cfg,
 	}
 }
 

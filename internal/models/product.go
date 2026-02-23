@@ -18,7 +18,7 @@ type Product struct {
 	ID                int64
 	Name              string
 	Description       string
-	CategoryID        int64
+	Category          Category
 	Price             int
 	Quantity          int
 	ExistingSizes     []ProductSize
@@ -27,4 +27,13 @@ type Product struct {
 	Discount          int
 	DiscountExpiresAt *time.Time
 	CreatedAt         time.Time
+}
+
+type ProductCard struct {
+	ID                int64
+	Name              string
+	Price             int
+	ImageUrl          string
+	Discount          int
+	DiscountExpiresAt *time.Time
 }

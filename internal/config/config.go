@@ -19,11 +19,12 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Addr          string        `env:"SERVER_ADDR" env-default:"0.0.0.0:50070"`
-	Timeout       time.Duration `env:"SERVER_TIMEOUT" env-default:"4s"`
-	IdleTimeout   time.Duration `env:"SERVER_IDLE_TIMEOUT" env-default:"60s"`
-	AdminLogin    string        `env:"ADMIN_LOGIN" env-required:"true"`
-	AdminPassword string        `env:"ADMIN_PASSWORD" env-required:"true"`
+	Addr           string        `env:"SERVER_ADDR" env-default:"0.0.0.0:50070"`
+	FileServerAddr string        `env:"FILESERVER_ADDR" env-default:"0.0.0.0:50071"`
+	Timeout        time.Duration `env:"SERVER_TIMEOUT" env-default:"4s"`
+	IdleTimeout    time.Duration `env:"SERVER_IDLE_TIMEOUT" env-default:"60s"`
+	AdminLogin     string        `env:"ADMIN_LOGIN" env-required:"true"`
+	AdminPassword  string        `env:"ADMIN_PASSWORD" env-required:"true"`
 }
 
 type DBConfig struct {
