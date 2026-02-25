@@ -10,12 +10,14 @@ import (
 	file_storage "github.com/AlexMickh/shop-backend/internal/file_storage/fs"
 	"github.com/AlexMickh/shop-backend/internal/models"
 	session_repository "github.com/AlexMickh/shop-backend/internal/repository/inmemory/session"
+	cart_repository "github.com/AlexMickh/shop-backend/internal/repository/sqlite/cart"
 	category_repository "github.com/AlexMickh/shop-backend/internal/repository/sqlite/category"
 	product_repository "github.com/AlexMickh/shop-backend/internal/repository/sqlite/product"
 	token_repository "github.com/AlexMickh/shop-backend/internal/repository/sqlite/token"
 	user_repository "github.com/AlexMickh/shop-backend/internal/repository/sqlite/user"
 	"github.com/AlexMickh/shop-backend/internal/server"
 	auth_service "github.com/AlexMickh/shop-backend/internal/services/auth"
+	cart_service "github.com/AlexMickh/shop-backend/internal/services/cart"
 	category_service "github.com/AlexMickh/shop-backend/internal/services/category"
 	product_service "github.com/AlexMickh/shop-backend/internal/services/product"
 	session_service "github.com/AlexMickh/shop-backend/internal/services/session"
@@ -50,6 +52,7 @@ func New(ctx context.Context, cfg *config.Config) *App {
 	tokenRepository := token_repository.New(db)
 	categoryRepository := category_repository.New(db)
 	productRepository := product_repository.New(db)
+	cartRepository := cart_repository.New(db)
 
 	log.Info("initing cash")
 	sessionCash := cash.New[string, models.Session](ctx, cfg.Jwt.RefreshTokenTtl)
@@ -69,6 +72,7 @@ func New(ctx context.Context, cfg *config.Config) *App {
 	sessionService := session_service.New(sessionRepository, jwtManager, cfg.Jwt.RefreshTokenTtl)
 	categoryService := category_service.New(categoryRepository)
 	productService := product_service.New(productRepository, fileStorage)
+	cartService := cart_service.New(cartRepository)
 
 	emailQueue, err := email.New(ctx, email.EmailConfig{
 		Host:     cfg.Mail.Host,
@@ -92,6 +96,7 @@ func New(ctx context.Context, cfg *config.Config) *App {
 		sessionService,
 		categoryService,
 		productService,
+		cartService,
 	)
 	if err != nil {
 		log.Error("failed to init server", logger.Err(err))

@@ -14,4 +14,5 @@ var (
 	ErrUnsupportedImageType  = errors.New("unsupported image type (only png)")
 	ErrProductAlreadyExists  = errors.New("producct already exists")
 	ErrProductNotFound       = errors.New("product not found")
+	ErrCartEmpty             = errors.New("cart is empty")
 )

@@ -12,6 +12,10 @@ import (
 	"github.com/AlexMickh/shop-backend/internal/server/handlers/auth/login"
 	"github.com/AlexMickh/shop-backend/internal/server/handlers/auth/refresh"
 	"github.com/AlexMickh/shop-backend/internal/server/handlers/auth/register"
+	cart_add "github.com/AlexMickh/shop-backend/internal/server/handlers/cart/add"
+	clear_cart "github.com/AlexMickh/shop-backend/internal/server/handlers/cart/clear"
+	delete_cart_item "github.com/AlexMickh/shop-backend/internal/server/handlers/cart/delete_item"
+	get_cart "github.com/AlexMickh/shop-backend/internal/server/handlers/cart/get"
 	create_category "github.com/AlexMickh/shop-backend/internal/server/handlers/category/create"
 	delete_category "github.com/AlexMickh/shop-backend/internal/server/handlers/category/delete"
 	get_categories "github.com/AlexMickh/shop-backend/internal/server/handlers/category/get"
@@ -21,6 +25,7 @@ import (
 	get_products "github.com/AlexMickh/shop-backend/internal/server/handlers/product/get"
 	update_product "github.com/AlexMickh/shop-backend/internal/server/handlers/product/update"
 	"github.com/AlexMickh/shop-backend/internal/server/handlers/user/verify"
+	"github.com/AlexMickh/shop-backend/internal/server/middlewares"
 	"github.com/AlexMickh/shop-backend/pkg/logger"
 	"github.com/AlexMickh/shop-backend/pkg/response"
 	"github.com/go-chi/chi/v5"
@@ -62,6 +67,13 @@ type ProductService interface {
 	DeleteProduct(ctx context.Context, id int64) error
 }
 
+type CartService interface {
+	AddToCart(ctx context.Context, userId, productId int64) (int64, error)
+	Cart(ctx context.Context, userId int64) (models.Cart, error)
+	DeleteItem(ctx context.Context, userId, productId int64) error
+	Clear(ctx context.Context, userId int64) error
+}
+
 // @title						Three Api
 // @version					1.0
 // @description				Your API description
@@ -77,6 +89,7 @@ func New(
 	sessionService SessionService,
 	categoryService CategoryService,
 	productService ProductService,
+	cartService CartService,
 ) (*Server, error) {
 	const op = "server.New"
 
@@ -132,6 +145,15 @@ func New(
 	r.Route("/products", func(r chi.Router) {
 		r.Get("/{id}", response.ErrorWrapper(product_by_id.New(validator, productService)))
 		r.Get("/", response.ErrorWrapper(get_products.New(validator, productService)))
+	})
+
+	r.Route("/carts", func(r chi.Router) {
+		r.Use(middlewares.Login(sessionService))
+
+		r.Post("/add/{product_id}", response.ErrorWrapper(cart_add.New(cartService)))
+		r.Get("/", response.ErrorWrapper(get_cart.New(cartService)))
+		r.Delete("/{item_id}", response.ErrorWrapper(delete_cart_item.New(cartService)))
+		r.Delete("/", response.ErrorWrapper(clear_cart.New(cartService)))
 	})
 
 	return &Server{

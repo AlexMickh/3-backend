@@ -1,8 +1,40 @@
 definitions:
+  dtos.AddToCartResponse:
+    properties:
+      id:
+        type: integer
+    type: object
+  dtos.CartItem:
+    properties:
+      discount:
+        type: integer
+      discountExpiresAt:
+        type: string
+      id:
+        format: int64
+        type: integer
+      imageUrl:
+        type: string
+      name:
+        type: string
+      price:
+        type: integer
+      quantity:
+        type: integer
+    type: object
   dtos.CreateCategoryResponse:
     properties:
       id:
         type: integer
+    type: object
+  dtos.GetCartResponse:
+    properties:
+      price:
+        type: integer
+      products:
+        items:
+          $ref: '#/definitions/dtos.CartItem'
+        type: array
     type: object
   dtos.GetCategoriesResponse:
     properties:
@@ -478,6 +510,135 @@ paths:
       summary: register user
       tags:
       - auth
+  /carts:
+    delete:
+      consumes:
+      - application/json
+      description: delete all item from cart
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - UserAuth: []
+      summary: delete all item from cart
+      tags:
+      - carts
+    get:
+      consumes:
+      - application/json
+      description: get users cart
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.GetCartResponse'
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - UserAuth: []
+      summary: get users cart
+      tags:
+      - carts
+  /carts/{item_id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete item from cart
+      parameters:
+      - description: item id
+        in: path
+        name: item_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - UserAuth: []
+      summary: delete item from cart
+      tags:
+      - carts
+  /carts/add/{product_id}:
+    post:
+      consumes:
+      - application/json
+      description: add product to cart
+      parameters:
+      - description: product id
+        in: path
+        name: product_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dtos.AddToCartResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - UserAuth: []
+      summary: add product to cart
+      tags:
+      - carts
   /categories:
     get:
       consumes:
