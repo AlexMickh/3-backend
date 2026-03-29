@@ -487,17 +487,6 @@ const docTemplate = `{
                     "auth"
                 ],
                 "summary": "generate new pare of tokens",
-                "parameters": [
-                    {
-                        "description": "Refresh token",
-                        "name": "refresh_token",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                ],
                 "responses": {
                     "201": {
                         "description": "Created",
@@ -739,6 +728,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/carts/buy": {
+            "post": {
+                "security": [
+                    {
+                        "UserAuth": []
+                    }
+                ],
+                "description": "return link to pay",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "carts"
+                ],
+                "summary": "return link to pay",
+                "responses": {
+                    "204": {
+                        "description": "No Content",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.BuyResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/carts/{item_id}": {
             "delete": {
                 "security": [
@@ -778,12 +813,6 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -950,7 +979,15 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "id": {
-                    "type": "integer"
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.BuyResponse": {
+            "type": "object",
+            "properties": {
+                "redirect_url": {
+                    "type": "string"
                 }
             }
         },
@@ -960,14 +997,13 @@ const docTemplate = `{
                 "discount": {
                     "type": "integer"
                 },
-                "discountExpiresAt": {
+                "discount_expires_at": {
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer",
-                    "format": "int64"
+                    "type": "string"
                 },
-                "imageUrl": {
+                "image_url": {
                     "type": "string"
                 },
                 "name": {
@@ -985,7 +1021,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "id": {
-                    "type": "integer"
+                    "type": "string"
                 }
             }
         },
@@ -1030,9 +1066,6 @@ const docTemplate = `{
             "properties": {
                 "access_token": {
                     "type": "string"
-                },
-                "refresh_token": {
-                    "type": "string"
                 }
             }
         },
@@ -1046,7 +1079,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "image_url": {
                     "type": "string"
@@ -1066,8 +1099,7 @@ const docTemplate = `{
                     "type": "object",
                     "properties": {
                         "id": {
-                            "type": "integer",
-                            "format": "int64"
+                            "type": "string"
                         },
                         "name": {
                             "type": "string"
@@ -1090,7 +1122,7 @@ const docTemplate = `{
                     }
                 },
                 "id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "image_url": {
                     "type": "string"
@@ -1111,9 +1143,6 @@ const docTemplate = `{
             "properties": {
                 "access_token": {
                     "type": "string"
-                },
-                "refresh_token": {
-                    "type": "string"
                 }
             }
         },
@@ -1121,7 +1150,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "id": {
-                    "type": "integer"
+                    "type": "string"
                 }
             }
         },
@@ -1129,7 +1158,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "id": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "name": {
                     "type": "string"

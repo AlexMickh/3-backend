@@ -24,7 +24,7 @@ func New(db DB) *TokenRepository {
 }
 
 func (t *TokenRepository) SaveToken(ctx context.Context, token models.Token) error {
-	const op = "repository.postgres.token.SaveToken"
+	const op = "repository.sqlite.token.SaveToken"
 
 	query := "INSERT INTO tokens (token, user_id, type, expires_at) VALUES (?, ?, ?, ?)"
 	_, err := t.db.ExecContext(ctx, query, token.Token, token.UserID, string(token.Type), token.ExpiresAt)

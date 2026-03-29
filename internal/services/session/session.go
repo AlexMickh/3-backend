@@ -5,7 +5,10 @@ import (
 	"time"
 
 	"github.com/AlexMickh/shop-backend/internal/dtos"
+	"github.com/AlexMickh/shop-backend/internal/errs"
 	"github.com/AlexMickh/shop-backend/internal/models"
+	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 )
 
 type SessionRepository interface {
@@ -14,7 +17,7 @@ type SessionRepository interface {
 }
 
 type JwtManager interface {
-	NewJwt(userID int64) (string, error)
+	NewJwt(userID string) (string, error)
 	NewRefresh() (string, error)
 	Validate(token string) (int64, error)
 }
@@ -23,20 +26,27 @@ type SessionService struct {
 	repository SessionRepository
 	jwtManager JwtManager
 	sessionTtl time.Duration
+	validator  *validator.Validate
 }
 
-func New(repository SessionRepository, jwtManager JwtManager, sessionTtl time.Duration) *SessionService {
+func New(
+	repository SessionRepository,
+	jwtManager JwtManager,
+	sessionTtl time.Duration,
+	validator *validator.Validate,
+) *SessionService {
 	return &SessionService{
 		repository: repository,
 		jwtManager: jwtManager,
 		sessionTtl: sessionTtl,
+		validator:  validator,
 	}
 }
 
-func (s *SessionService) CreateSession(userID int64) (string, string, error) {
+func (s *SessionService) CreateSession(userID uuid.UUID) (string, string, error) {
 	const op = "services.session.CreateSession"
 
-	accessToken, err := s.jwtManager.NewJwt(userID)
+	accessToken, err := s.jwtManager.NewJwt(userID.String())
 	if err != nil {
 		return "", "", fmt.Errorf("%s: %w", op, err)
 	}
@@ -48,7 +58,7 @@ func (s *SessionService) CreateSession(userID int64) (string, string, error) {
 
 	session := models.Session{
 		Token:          refreshToken,
-		UserID:         userID,
+		UserID:         userID.String(),
 		ExpiresAtField: time.Now().Add(s.sessionTtl),
 	}
 	s.repository.SaveSession(session)
@@ -58,6 +68,10 @@ func (s *SessionService) CreateSession(userID int64) (string, string, error) {
 
 func (s *SessionService) Refresh(req dtos.RefreshRequest) (string, string, error) {
 	const op = "services.session.Refresh"
+
+	if err := s.validator.Struct(&req); err != nil {
+		return "", "", fmt.Errorf("%s: %w", op, errs.ErrInvalidRequest)
+	}
 
 	session, err := s.repository.SessionByToken(req.RefreshToken)
 	if err != nil {
@@ -86,6 +100,10 @@ func (s *SessionService) Refresh(req dtos.RefreshRequest) (string, string, error
 
 func (s *SessionService) ValidateJwt(token string) (int64, error) {
 	const op = "services.session.ValidateJwt"
+
+	if token == "" {
+		return 0, fmt.Errorf("%s: %w", op, errs.ErrInvalidRequest)
+	}
 
 	userID, err := s.jwtManager.Validate(token)
 	if err != nil {

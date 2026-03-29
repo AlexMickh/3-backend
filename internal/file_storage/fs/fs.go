@@ -3,6 +3,8 @@ package file_storage
 import (
 	"fmt"
 	"os"
+
+	"github.com/google/uuid"
 )
 
 type FileStorage struct {
@@ -24,21 +26,21 @@ func New(basePath string, serverAddr string) (*FileStorage, error) {
 	}, nil
 }
 
-func (f *FileStorage) SaveImage(id int64, image []byte) (string, error) {
+func (f *FileStorage) SaveImage(id uuid.UUID, image []byte) (string, error) {
 	const op = "file_storage.fs.SaveImage"
 
-	err := os.WriteFile(fmt.Sprintf("%s/%d.png", f.basePath, id), image, 0600)
+	err := os.WriteFile(fmt.Sprintf("%s/%s.png", f.basePath, id.String()), image, 0600)
 	if err != nil {
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
-	return fmt.Sprintf("http://%s/%d.png", f.serverAddr, id), nil
+	return fmt.Sprintf("http://%s/%s.png", f.serverAddr, id.String()), nil
 }
 
-func (f *FileStorage) DeleteImage(id int64) error {
+func (f *FileStorage) DeleteImage(id uuid.UUID) error {
 	const op = "file_storage.fs.DeleteImage"
 
-	err := os.Remove(fmt.Sprintf("%s/%d.png", f.basePath, id))
+	err := os.Remove(fmt.Sprintf("%s/%s.png", f.basePath, id.String()))
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}

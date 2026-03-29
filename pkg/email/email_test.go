@@ -80,7 +80,7 @@ func TestSendWelcomeMessages(t *testing.T) {
 
 			buf := make([]byte, 512)
 			ts.Messages()[0].Body.Read(buf)
-			require.True(t, strings.Contains(string(buf), fmt.Sprintf("<a href=\"http://localhost:8080/auth/verify/%s\">link</a>", code)))
+			require.True(t, strings.Contains(string(buf), fmt.Sprintf("<a href=\"http://localhost:8081/user/verify/%s\">link</a>", code)))
 		})
 	}
 }

@@ -5,5 +5,5 @@ type CreateCategoryRequest struct {
 }
 
 type CreateCategoryResponse struct {
-	ID int64 `json:"id"`
+	ID string `json:"id"`
 }

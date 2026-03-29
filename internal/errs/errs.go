@@ -5,6 +5,7 @@ import "errors"
 var (
 	ErrUserAlreadyExists     = errors.New("user already exists")
 	ErrUserNotFound          = errors.New("user with this email or password not found")
+	ErrUserCantBuy           = errors.New("user can't buy (need phone number and delivery address)")
 	ErrEmailNotVerified      = errors.New("email not verify")
 	ErrTokenNotFound         = errors.New("token not found")
 	ErrTokenExpired          = errors.New("token expired")
@@ -15,4 +16,6 @@ var (
 	ErrProductAlreadyExists  = errors.New("producct already exists")
 	ErrProductNotFound       = errors.New("product not found")
 	ErrCartEmpty             = errors.New("cart is empty")
+	ErrCreatePayment         = errors.New("failed to create payment")
+	ErrInvalidRequest        = errors.New("failed to validate request")
 )

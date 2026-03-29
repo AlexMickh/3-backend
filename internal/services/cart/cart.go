@@ -4,48 +4,77 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/AlexMickh/shop-backend/internal/dtos"
+	"github.com/AlexMickh/shop-backend/internal/errs"
 	"github.com/AlexMickh/shop-backend/internal/models"
 	"github.com/AlexMickh/shop-backend/pkg/utils/slice"
+	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 )
 
 type CartRepository interface {
-	AddProduct(ctx context.Context, userId, productId int64) (int64, error)
-	Cart(ctx context.Context, userId int64) ([]*models.CartItem, error)
-	DeleteItem(ctx context.Context, userId, productId int64) error
-	Clear(ctx context.Context, userId int64) error
+	AddProduct(ctx context.Context, userId, productId uuid.UUID) (uuid.UUID, error)
+	Cart(ctx context.Context, userId uuid.UUID) ([]*models.CartItem, error)
+	DeleteItem(ctx context.Context, userId, productId uuid.UUID) error
+	Clear(ctx context.Context, userId uuid.UUID) error
+}
+
+type UserService interface {
+	CanBuy(ctx context.Context, userId uuid.UUID) error
+}
+
+type PaymentService interface {
+	CreatePayment(userId uuid.UUID, price float32) (string, error)
 }
 
 type CartService struct {
 	cartRepository CartRepository
+	userService    UserService
+	paymentService PaymentService
+	validator      *validator.Validate
 }
 
-func New(cartRepository CartRepository) *CartService {
+func New(cartRepository CartRepository /*userService UserService, paymentService PaymentService*/) *CartService {
 	return &CartService{
 		cartRepository: cartRepository,
+		// userService:    userService,
+		// paymentService: paymentService,
 	}
 }
 
-func (c *CartService) AddToCart(ctx context.Context, userId, productId int64) (int64, error) {
+func (c *CartService) AddToCart(ctx context.Context, req dtos.AddToCartRequest) (uuid.UUID, error) {
 	const op = "services.cart.AddToCart"
 
-	id, err := c.cartRepository.AddProduct(ctx, userId, productId)
+	if err := c.validator.Struct(&req); err != nil {
+		return uuid.UUID{}, fmt.Errorf("%s: %w", op, errs.ErrInvalidRequest)
+	}
+
+	id, err := c.cartRepository.AddProduct(ctx, uuid.MustParse(req.UserId), uuid.MustParse(req.ProductId))
 	if err != nil {
-		return 0, fmt.Errorf("%s: %w", op, err)
+		return uuid.UUID{}, fmt.Errorf("%s: %w", op, err)
 	}
 
 	return id, nil
 }
 
-func (c *CartService) Cart(ctx context.Context, userId int64) (models.Cart, error) {
+func (c *CartService) Cart(ctx context.Context, userId string) (models.Cart, error) {
 	const op = "services.cart.Cart"
 
-	cartItems, err := c.cartRepository.Cart(ctx, userId)
+	// if userId < 1 {
+	// 	return models.Cart{}, fmt.Errorf("%s: %w", op, errs.ErrInvalidRequest)
+	// }
+	id, err := uuid.Parse(userId)
+	if err != nil {
+		return models.Cart{}, fmt.Errorf("%s: %w", op, errs.ErrInvalidRequest)
+	}
+
+	cartItems, err := c.cartRepository.Cart(ctx, id)
 	if err != nil {
 		return models.Cart{}, fmt.Errorf("%s: %w", op, err)
 	}
 
 	len := len(cartItems)
-	var previousId int64 = 0
+	previousId := uuid.UUID{}
 	var cart models.Cart
 
 	for i := range len {
@@ -62,10 +91,20 @@ func (c *CartService) Cart(ctx context.Context, userId int64) (models.Cart, erro
 	return cart, nil
 }
 
-func (c *CartService) DeleteItem(ctx context.Context, userId, productId int64) error {
+func (c *CartService) DeleteItem(ctx context.Context, userId, productId string) error {
 	const op = "services.cart.DeleteItem"
 
-	err := c.cartRepository.DeleteItem(ctx, userId, productId)
+	userUUID, err := uuid.Parse(userId)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, errs.ErrInvalidRequest)
+	}
+
+	productUUID, err := uuid.Parse(productId)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, errs.ErrInvalidRequest)
+	}
+
+	err = c.cartRepository.DeleteItem(ctx, userUUID, productUUID)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
@@ -73,13 +112,46 @@ func (c *CartService) DeleteItem(ctx context.Context, userId, productId int64) e
 	return nil
 }
 
-func (c *CartService) Clear(ctx context.Context, userId int64) error {
+func (c *CartService) Clear(ctx context.Context, userId string) error {
 	const op = "services.cart.Clear"
 
-	err := c.cartRepository.Clear(ctx, userId)
+	userUUID, err := uuid.Parse(userId)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, errs.ErrInvalidRequest)
+	}
+
+	err = c.cartRepository.Clear(ctx, userUUID)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	return nil
+}
+
+func (c *CartService) Buy(ctx context.Context, userId string) (string, error) {
+	const op = "services.cart.Buy"
+
+	userUUID, err := uuid.Parse(userId)
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", op, errs.ErrInvalidRequest)
+	}
+
+	err = c.userService.CanBuy(ctx, userUUID)
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
+
+	cart, err := c.Cart(ctx, userId)
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
+
+	cartPrice := float32(cart.Price) / 100
+
+	redirectUrl, err := c.paymentService.CreatePayment(userUUID, cartPrice)
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
+
+	return redirectUrl, nil
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/AlexMickh/shop-backend/internal/dtos"
 	"github.com/AlexMickh/shop-backend/internal/errs"
 	"github.com/AlexMickh/shop-backend/internal/models"
+	"github.com/go-playground/validator/v10"
 	mock "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
@@ -19,16 +20,16 @@ func TestRegister(t *testing.T) {
 		req dtos.RegisterDto
 	}
 
-	var id int64 = 1
+	id := "1"
 	tokenErr := errors.New("token error")
 
 	tests := []struct {
 		name                string
 		args                args
-		want                int64
+		want                string
 		wantErr             error
 		wantUserMockErr     error
-		wantUserMockReturn  int64
+		wantUserMockReturn  string
 		wantTokenMockErr    error
 		wantTokenMockReturn models.Token
 	}{
@@ -57,7 +58,7 @@ func TestRegister(t *testing.T) {
 					Password: "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
 				},
 			},
-			want:                0,
+			want:                "",
 			wantErr:             bcrypt.ErrPasswordTooLong,
 			wantUserMockErr:     nil,
 			wantUserMockReturn:  id,
@@ -70,13 +71,13 @@ func TestRegister(t *testing.T) {
 				ctx: context.Background(),
 				req: dtos.RegisterDto{
 					Email:    "example@email.com",
-					Password: "1",
+					Password: "12343",
 				},
 			},
-			want:                0,
+			want:                "",
 			wantErr:             errs.ErrUserAlreadyExists,
 			wantUserMockErr:     errs.ErrUserAlreadyExists,
-			wantUserMockReturn:  0,
+			wantUserMockReturn:  "",
 			wantTokenMockErr:    nil,
 			wantTokenMockReturn: models.Token{},
 		},
@@ -89,7 +90,7 @@ func TestRegister(t *testing.T) {
 					Password: "12345",
 				},
 			},
-			want:                0,
+			want:                "",
 			wantErr:             tokenErr,
 			wantUserMockErr:     nil,
 			wantUserMockReturn:  id,
@@ -112,7 +113,7 @@ func TestRegister(t *testing.T) {
 			tokenService := NewMockTokenService(t)
 			tokenService.EXPECT().CreateToken(
 				mock.AnythingOfType("context.backgroundCtx"),
-				mock.AnythingOfType("int64"),
+				mock.AnythingOfType("string"),
 				mock.AnythingOfType("models.TokenType"),
 			).Return(tt.wantTokenMockReturn, tt.wantTokenMockErr).Maybe()
 
@@ -120,6 +121,7 @@ func TestRegister(t *testing.T) {
 				userService:  userService,
 				emailQueue:   make(chan [2]string, 5),
 				tokenService: tokenService,
+				validator:    validator.New(),
 			}
 
 			got, err := a.Register(tt.args.ctx, tt.args.req)

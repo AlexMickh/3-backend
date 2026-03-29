@@ -5,7 +5,11 @@ dotenv: ['.env']
 tasks:
   migrate:
     env:
-      DB_FILE: "{{.DB_FILE}}"
+      DB_HOST: "{{.DB_HOST}}"
+      DB_PORT: "{{.DB_PORT}}"
+      DB_USER: "{{.DB_USER}}"
+      DB_PASSWORD: "{{.DB_PASSWORD}}"
+      DB_NAME: "{{.DB_NAME}}"
       MIGRATIONS_PATH: "{{.MIGRATIONS_PATH}}"
     cmds:
       - go run ./cmd/migrator/main.go

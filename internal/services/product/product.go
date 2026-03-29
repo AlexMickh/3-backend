@@ -7,84 +7,106 @@ import (
 	"io"
 
 	"github.com/AlexMickh/shop-backend/internal/dtos"
+	"github.com/AlexMickh/shop-backend/internal/errs"
 	"github.com/AlexMickh/shop-backend/internal/models"
+	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 )
 
 type ProductRepository interface {
-	SaveProduct(ctx context.Context, product *models.Product) (int64, error)
-	ProductById(ctx context.Context, id int64) (*models.Product, error)
+	SaveProduct(ctx context.Context, product *models.Product) error
+	ProductById(ctx context.Context, id uuid.UUID) (*models.Product, error)
 	ProductCards(
 		ctx context.Context,
 		page int,
 		popularity bool,
 		price int,
-		categoryId int64,
+		categoryId uuid.UUID,
 		search string,
 	) ([]models.ProductCard, error)
 	UpdateProduct(ctx context.Context, productToUpdate *models.Product) error
-	SaveImage(ctx context.Context, id int64, imageUrl string) error
-	DeleteProduct(ctx context.Context, id int64) error
+	DeleteProduct(ctx context.Context, id uuid.UUID) error
 }
 
 type FileStorage interface {
-	SaveImage(id int64, image []byte) (string, error)
-	DeleteImage(id int64) error
+	SaveImage(id uuid.UUID, image []byte) (string, error)
+	DeleteImage(id uuid.UUID) error
 }
 
 type ProductService struct {
 	productRepository ProductRepository
 	fileStorage       FileStorage
+	validator         *validator.Validate
 }
 
-func New(productRepository ProductRepository, fileStorage FileStorage) *ProductService {
+func New(productRepository ProductRepository, fileStorage FileStorage, validator *validator.Validate) *ProductService {
 	return &ProductService{
 		productRepository: productRepository,
 		fileStorage:       fileStorage,
+		validator:         validator,
 	}
 }
 
-func (p *ProductService) CreateProduct(ctx context.Context, req dtos.CreateProductRequest) (int64, error) {
+func (p *ProductService) CreateProduct(ctx context.Context, req dtos.CreateProductRequest) (uuid.UUID, error) {
 	const op = "services.product.CreateProduct"
 
-	product := models.Product{
-		Name:        req.Name,
-		Description: req.Description,
-		Price:       req.Price,
-		Category: models.Category{
-			ID: req.CategoryID,
-		},
-		Quantity:      req.Quantity,
-		ExistingSizes: convertSizes(req.ExistingSizes),
+	if err := p.validator.Struct(&req); err != nil {
+		fmt.Println(err)
+		return uuid.UUID{}, fmt.Errorf("%s: %w", op, errs.ErrInvalidRequest)
 	}
 
-	id, err := p.productRepository.SaveProduct(ctx, &product)
+	categoryId, err := uuid.Parse(req.CategoryID)
 	if err != nil {
-		return 0, fmt.Errorf("%s: %w", op, err)
+		fmt.Println(err)
+		return uuid.UUID{}, fmt.Errorf("%s: %w", op, errs.ErrInvalidRequest)
+	}
+
+	userId, err := uuid.NewV7()
+	if err != nil {
+		return uuid.UUID{}, fmt.Errorf("%s: %w", op, err)
 	}
 
 	buf := bytes.NewBuffer(nil)
 
 	if _, err = io.Copy(buf, req.Image); err != nil {
-		return 0, fmt.Errorf("%s: %w", op, err)
+		return uuid.UUID{}, fmt.Errorf("%s: %w", op, err)
 	}
 
-	product.ImageUrl, err = p.fileStorage.SaveImage(id, buf.Bytes())
+	imageUrl, err := p.fileStorage.SaveImage(userId, buf.Bytes())
 	if err != nil {
-		return 0, fmt.Errorf("%s: %w", op, err)
+		return uuid.UUID{}, fmt.Errorf("%s: %w", op, err)
 	}
 
-	err = p.productRepository.SaveImage(ctx, id, product.ImageUrl)
+	product := models.Product{
+		ID:          userId,
+		Name:        req.Name,
+		Description: req.Description,
+		Price:       req.Price,
+		Category: models.Category{
+			ID: categoryId,
+		},
+		Quantity:      req.Quantity,
+		ExistingSizes: convertSizes(req.ExistingSizes),
+		ImageUrl:      imageUrl,
+	}
+
+	err = p.productRepository.SaveProduct(ctx, &product)
 	if err != nil {
-		return 0, fmt.Errorf("%s: %w", op, err)
+		return uuid.UUID{}, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return id, nil
+	return userId, nil
 }
 
-func (p *ProductService) ProductById(ctx context.Context, id int64) (*models.Product, error) {
+func (p *ProductService) ProductById(ctx context.Context, id string) (*models.Product, error) {
 	const op = "services.product.ProductById"
 
-	product, err := p.productRepository.ProductById(ctx, id)
+	productId, err := uuid.Parse(id)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, errs.ErrInvalidRequest)
+	}
+
+	product, err := p.productRepository.ProductById(ctx, productId)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -95,12 +117,25 @@ func (p *ProductService) ProductById(ctx context.Context, id int64) (*models.Pro
 func (p *ProductService) ProductCards(ctx context.Context, req dtos.GetProductsRequest) ([]models.ProductCard, error) {
 	const op = "services.product.ProductCards"
 
+	err := p.validator.Struct(&req)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, errs.ErrInvalidRequest)
+	}
+
+	categoryId := uuid.Max // magic value for null id, because in this lib we don't have null value
+	if req.CategoryID != "" {
+		categoryId, err = uuid.Parse(req.CategoryID)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", op, errs.ErrInvalidRequest)
+		}
+	}
+
 	products, err := p.productRepository.ProductCards(
 		ctx,
 		req.Page,
 		req.Popularity,
 		req.Price,
-		req.CategoryID,
+		categoryId,
 		req.Search,
 	)
 	if err != nil {
@@ -113,8 +148,17 @@ func (p *ProductService) ProductCards(ctx context.Context, req dtos.GetProductsR
 func (p *ProductService) UpdateProduct(ctx context.Context, req *dtos.UpdateProductRequest) error {
 	const op = "services.product.UpdateProduct"
 
+	if err := p.validator.Struct(&req); err != nil {
+		return fmt.Errorf("%s: %w", op, errs.ErrInvalidRequest)
+	}
+
+	productId, err := uuid.Parse(req.ID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, errs.ErrInvalidRequest)
+	}
+
 	productToUpdate := &models.Product{
-		ID:                req.ID,
+		ID:                productId,
 		Name:              req.Name,
 		Description:       req.Description,
 		Price:             req.Price,
@@ -123,7 +167,6 @@ func (p *ProductService) UpdateProduct(ctx context.Context, req *dtos.UpdateProd
 		Discount:          req.Discount,
 		DiscountExpiresAt: req.DiscountExpiresAt,
 	}
-	var err error
 
 	if req.Image != nil {
 		buf := bytes.NewBuffer(nil)
@@ -132,7 +175,7 @@ func (p *ProductService) UpdateProduct(ctx context.Context, req *dtos.UpdateProd
 			return fmt.Errorf("%s: %w", op, err)
 		}
 
-		productToUpdate.ImageUrl, err = p.fileStorage.SaveImage(req.ID, buf.Bytes())
+		productToUpdate.ImageUrl, err = p.fileStorage.SaveImage(productId, buf.Bytes())
 		if err != nil {
 			return fmt.Errorf("%s: %w", op, err)
 		}
@@ -146,15 +189,20 @@ func (p *ProductService) UpdateProduct(ctx context.Context, req *dtos.UpdateProd
 	return nil
 }
 
-func (p *ProductService) DeleteProduct(ctx context.Context, id int64) error {
+func (p *ProductService) DeleteProduct(ctx context.Context, id string) error {
 	const op = "services.product.DeleteProduct"
 
-	err := p.productRepository.DeleteProduct(ctx, id)
+	productId, err := uuid.Parse(id)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, errs.ErrInvalidRequest)
+	}
+
+	err = p.productRepository.DeleteProduct(ctx, productId)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	err = p.fileStorage.DeleteImage(id)
+	err = p.fileStorage.DeleteImage(productId)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}

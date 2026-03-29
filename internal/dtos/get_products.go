@@ -1,12 +1,16 @@
 package dtos
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type GetProductsRequest struct {
 	Page       int
 	Popularity bool
 	Price      int
-	CategoryID int64
+	CategoryID string
 	Search     string
 }
 
@@ -15,7 +19,7 @@ type GetProductsResponse struct {
 }
 
 type Product struct {
-	ID                int64      `json:"id"`
+	ID                uuid.UUID  `json:"id"`
 	Name              string     `json:"name"`
 	Price             int        `json:"price"`
 	ImageUrl          string     `json:"image_url"`

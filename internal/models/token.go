@@ -2,6 +2,8 @@ package models
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type TokenType string
@@ -13,7 +15,7 @@ const (
 
 type Token struct {
 	Token     string
-	UserID    int64
+	UserID    uuid.UUID
 	Type      TokenType
 	ExpiresAt time.Time
 }

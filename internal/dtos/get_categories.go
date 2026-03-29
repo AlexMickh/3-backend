@@ -7,7 +7,7 @@ type GetCategoriesResponse struct {
 }
 
 type category struct {
-	ID   int64  `json:"id"`
+	ID   string `json:"id"`
 	Name string `json:"name"`
 }
 
@@ -16,7 +16,7 @@ func ToGetCategoriesResponse(categories []models.Category) GetCategoriesResponse
 
 	for _, v := range categories {
 		resp = append(resp, category{
-			ID:   v.ID,
+			ID:   v.ID.String(),
 			Name: v.Name,
 		})
 	}

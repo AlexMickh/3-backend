@@ -6,5 +6,5 @@ type RegisterDto struct {
 }
 
 type RegisterResponse struct {
-	ID int64 `json:"id"`
+	ID string `json:"id"`
 }

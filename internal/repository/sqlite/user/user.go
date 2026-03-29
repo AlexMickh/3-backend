@@ -90,3 +90,7 @@ func (u *UserRepository) VerifyEmail(ctx context.Context, token string) error {
 
 	return nil
 }
+
+func (u *UserRepository) CanBuy(ctx context.Context, userId int64) (bool, error) {
+	return false, nil
+}

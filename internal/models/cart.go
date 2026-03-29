@@ -1,9 +1,13 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type CartItem struct {
-	ID                int64
+	ID                uuid.UUID
 	Name              string
 	Price             int
 	ImageUrl          string

@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS categories(
-    id INTEGER PRIMARY KEY,
-    name TEXT UNIQUE,
-    created_at TEXT DEFAULT (datetime('now'))
+    id UUID PRIMARY KEY DEFAULT uuidv7(),
+    name VARCHAR(100) UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

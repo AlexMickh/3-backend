@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type ProductSize string
 
@@ -15,10 +19,10 @@ const (
 )
 
 type Product struct {
-	ID                int64
+	ID                uuid.UUID
+	Category          Category
 	Name              string
 	Description       string
-	Category          Category
 	Price             int
 	Quantity          int
 	ExistingSizes     []ProductSize
@@ -27,10 +31,11 @@ type Product struct {
 	Discount          int
 	DiscountExpiresAt *time.Time
 	CreatedAt         time.Time
+	UpdatedAt         time.Time
 }
 
 type ProductCard struct {
-	ID                int64
+	ID                uuid.UUID
 	Name              string
 	Price             int
 	ImageUrl          string

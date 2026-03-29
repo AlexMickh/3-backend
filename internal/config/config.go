@@ -28,7 +28,13 @@ type ServerConfig struct {
 }
 
 type DBConfig struct {
-	File string `env:"DB_FILE" env-default:"storage.db"`
+	Host     string `env:"DB_HOST" env-default:"localhost"`
+	Port     int    `env:"DB_PORT" env-default:"5222"`
+	User     string `env:"DB_USER" env-default:"postgres"`
+	Password string `env:"DB_PASSWORD" env-required:"true"`
+	Name     string `env:"DB_NAME" env-default:"chat"`
+	MinPools int    `env:"DB_MIN_POOLS" env-default:"3"`
+	MaxPools int    `env:"DB_MAX_POOLS" env-default:"5"`
 }
 
 type JwtConfig struct {

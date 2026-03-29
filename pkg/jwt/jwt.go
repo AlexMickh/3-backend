@@ -21,7 +21,7 @@ func New(secret string, jwtTtl time.Duration) *JwtManager {
 	}
 }
 
-func (j *JwtManager) NewJwt(userID int64) (string, error) {
+func (j *JwtManager) NewJwt(userID string) (string, error) {
 	const op = "pkg.jwt.NewJwt"
 
 	token := jwt.New(jwt.SigningMethodHS256)

@@ -6,7 +6,7 @@ import (
 )
 
 type UpdateProductRequest struct {
-	ID                int64      `validate:"required"`
+	ID                string     `validate:"required"`
 	Name              string     `validate:"min=5"`
 	Description       string     `validate:"min=5"`
 	Price             int        `validate:"gt=0"`

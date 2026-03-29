@@ -3,7 +3,7 @@ package dtos
 import "time"
 
 type ProductByIdResponse struct {
-	ID                int64      `json:"id"`
+	ID                string     `json:"id"`
 	Name              string     `json:"name"`
 	Description       string     `json:"description"`
 	Price             int        `json:"price"`
@@ -13,7 +13,7 @@ type ProductByIdResponse struct {
 	Discount          int        `json:"discount,omitempty"`
 	DiscountExpiresAt *time.Time `json:"discount_expires_at,omitempty"`
 	Category          struct {
-		ID   int64
-		Name string
+		ID   string `json:"id"`
+		Name string `json:"name"`
 	} `json:"category"`
 }

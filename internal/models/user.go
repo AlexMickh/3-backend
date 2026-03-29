@@ -1,5 +1,9 @@
 package models
 
+import (
+	"github.com/google/uuid"
+)
+
 type UserRole string
 
 const (
@@ -8,7 +12,7 @@ const (
 )
 
 type User struct {
-	ID              int64
+	ID              uuid.UUID
 	Email           string
 	Phone           *string
 	Password        string
